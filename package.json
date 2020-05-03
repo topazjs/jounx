@@ -1,0 +1,42 @@
+{
+  "name": "jounx",
+  "version": "1.0.0",
+  "description": "A more useful console and/or file logging solution with colors",
+  "module": "index.js",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "mocha --full-trace --inline-diffs --recursive",
+    "test:dev": "mocha --full-trace --inline-diffs --recursive --watch",
+    "lint:test": "eslint -c .eslintrc.js --ignore-pattern 'node_modules/' --ignore-pattern 'test/' .",
+    "lint:fix": "eslint -c .eslintrc.js --fix --ignore-pattern 'node_modules/' --ignore-pattern 'test/' .",
+    "prepublish": "npm run lint:fix && npm test"
+  },
+  "keywords": [
+    "logging",
+    "logger",
+    "log",
+    "console",
+    "chalk"
+  ],
+  "author": "Deryck Henson",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/eslint": "^6.8.0",
+    "@types/mocha": "^7.0.2",
+    "chalk": "^4.0.0",
+    "mkdirp": "^1.0.4"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^6.8.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^7.1.2"
+  },
+  "engine-strict": false,
+  "engines": {
+    "node": ">=12.13.0",
+    "npm": ">=6.14.4"
+  }
+}

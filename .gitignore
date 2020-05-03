@@ -1,0 +1,7 @@
+.idea
+node_modules
+*.log
+*.debug*
+.old
+logs
+.demo.js
