@@ -19,6 +19,10 @@
     "chalk"
   ],
   "author": "Deryck Henson",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/topazjs/jounx.git"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "@types/chai": "^4.2.11",
