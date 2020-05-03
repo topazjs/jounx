@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A more useful console and/or file logging solution with colors",
   "module": "index.js",
-  "private": true,
+  "private": false,
   "type": "module",
   "scripts": {
     "test": "mocha --full-trace --inline-diffs --recursive",
