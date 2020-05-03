@@ -1,6 +1,6 @@
 {
   "name": "jounx",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A more useful console and/or file logging solution with colors",
   "main": "index.js",
   "private": false,
