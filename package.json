@@ -1,10 +1,9 @@
 {
   "name": "jounx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A more useful console and/or file logging solution with colors",
-  "module": "index.js",
+  "main": "index.js",
   "private": false,
-  "type": "module",
   "scripts": {
     "test": "mocha --full-trace --inline-diffs --recursive",
     "test:dev": "mocha --full-trace --inline-diffs --recursive --watch",
