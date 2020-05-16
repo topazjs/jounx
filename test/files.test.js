@@ -13,7 +13,7 @@ const {
 const fs = require('fs');
 const statAsync = promisify(fs.stat);
 const readFileAsync = promisify(fs.readFile);
-const Logger = require('../build/index.js').default;
+const { Logger } = require('../build/index.js');
 const chai = require('chai');
 const assert = chai.assert;
 

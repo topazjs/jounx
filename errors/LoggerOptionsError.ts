@@ -1,5 +1,5 @@
 
-export default class LoggerOptionsError<TBase extends Error> extends Error {
+export class LoggerOptionsError extends Error {
     name = `LoggerOptionsError`;
 
     message = ``;

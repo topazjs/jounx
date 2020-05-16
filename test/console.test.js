@@ -15,7 +15,7 @@ afterEach(function () {
     console.trace = originalTrace;
 });
 
-const Logger = require('../build/index.js').default;
+const { Logger } = require('../build/index.js');
 
 const makeLogger = ( options = {} ) => new Logger({
     "enableLogFiles": false,

@@ -1,12 +1,12 @@
 import path from "path";
-import LoggerOptionsError from "./errors/LoggerOptionsError";
+import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
 export type consoleMaxWidthType = {
     size: number;
     regEx: RegExp;
 };
 
-class LoggerOptions {
+export class LoggerOptions {
     dev: boolean = process.env.NODE_ENV === `development`;
 
     /**
@@ -330,5 +330,3 @@ class LoggerOptions {
         }
     }
 }
-
-export default LoggerOptions;

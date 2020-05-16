@@ -1,7 +1,7 @@
 'use strict';
 
-const Logger = require('../build/index.js').default;
-const LoggerOptions = require('../build/options.js').default;
+const { Logger } = require('../build/index.js');
+const { LoggerOptions } = require('../build/options.js');
 const chai = require('chai');
 const assert = chai.assert;
 

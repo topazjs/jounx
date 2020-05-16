@@ -2,10 +2,8 @@ import chalk from "chalk";
 
 import fs from "fs";
 import { promisify } from "util";
-import LoggerFileError from "./errors/LoggerFileError";
-
-import LoggerOptions from "./options";
-
+import { LoggerFileError } from "./errors/LoggerFileError";
+import { LoggerOptions } from "./options";
 import { getString } from "./utils";
 
 const chalkConsole: chalk.Chalk = new chalk.Instance({ 'level': 3 });
@@ -16,8 +14,7 @@ const NANOSEC_PER_MS = BigInt(1e6);
 const appendFileAsync = promisify(fs.appendFile);
 const readdirAsync = promisify(fs.readdir);
 
-
-export default class Logger extends LoggerOptions {
+export class Logger extends LoggerOptions {
     timers: Map<any, bigint> = new Map();
 
     fileWriter: (
