@@ -120,10 +120,8 @@ export class Logger extends LoggerOptions {
     getText ( destination, type, ...messages ) {
         const prefix = this.getPrefix(destination, type);
         const multiline = this.consoleMultiLine;
-        const {
-            size: maxWidth,
-            regEx: regMaxWidth,
-        } = this.consoleMaxWidth;
+        const maxWidth = this.consoleMaxWidth;
+        const regMaxWidth = new RegExp(`(.{${maxWidth}})`, `g`);
 
         const line = [
             prefix,

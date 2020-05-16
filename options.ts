@@ -12,11 +12,11 @@ export class LoggerOptions {
     /**
      * File option defaults
      */
+    enableLogFiles = false;
+
     fileWriteMode = `writeFileAsync`;
 
     logFileDirectory = `./logs`;
-
-    enableLogFiles = true;
 
     infoFilename = `info`;
 
@@ -33,10 +33,7 @@ export class LoggerOptions {
      */
     enableConsole = true;
 
-    consoleMaxWidth: consoleMaxWidthType = {
-        size: process.stdout.columns || 120,
-        regEx: new RegExp(`(.{${process.stdout.columns || 120}})`, `g`),
-    };
+    consoleMaxWidth: number = process.stdout.columns || 120;
 
     consoleMultiLine = `always`;
 
@@ -94,7 +91,7 @@ export class LoggerOptions {
      * @param   {string}    value
      * @returns {string}
      */
-    private static getFileWriteMode = function getFileWriteMode ( value: string ) {
+    static getFileWriteMode ( value: string ) {
         const regModes = /^writeFileAsync|writeFileStream$/;
 
         if ( regModes.test(value) ) {
@@ -102,7 +99,7 @@ export class LoggerOptions {
         }
 
         return `writeFileAsync`;
-    };
+    }
 
     /**
      * Directory to store the log files if `enableLogFiles` is `true`
@@ -119,7 +116,7 @@ export class LoggerOptions {
      *
      *  default: "./logs"
      */
-    private static getLogFileDirectory = function getLogFileDirectory ( value: string ) {
+    static getLogFileDirectory ( value: string ) {
         const regDots = /^\.\.?\//;
 
         /**
@@ -130,21 +127,13 @@ export class LoggerOptions {
         }
 
         return value;
-    };
+    }
 
     /**
      * Max amount of text that will attempt to fit on one line before a line break
      * is inserted
      * @returns     {{ size: number, regEx: RegExp }}
      */
-    private static getConsoleMaxWidth ( { size }: { size: number } ): consoleMaxWidthType {
-        const regEx = new RegExp(`(.{${size}})`, `g`);
-
-        return {
-            size,
-            regEx,
-        };
-    }
 
     // eslint-disable-next-line complexity
     constructor ( inputOptions: LoggerOptions|{}|[]|void ) {
@@ -226,7 +215,7 @@ export class LoggerOptions {
         }
 
         if ( `consoleMaxWidth` in options ) {
-            this.consoleMaxWidth = LoggerOptions.getConsoleMaxWidth(options.consoleMaxWidth);
+            this.consoleMaxWidth = ~~options.consoleMaxWidth;
         }
 
         /**
