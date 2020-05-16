@@ -1,19 +1,18 @@
 {
   "name": "jounx",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A more useful console and/or file logging solution with colors",
   "main": "build/index.js",
   "types": "build/*.d.ts",
   "private": false,
   "scripts": {
     "tsc": "tsc",
-    "test": "mocha --full-trace --inline-diffs --recursive",
-    "test:dev": "mocha -r ts-node/register --full-trace --inline-diffs --recursive **/*.test.ts",
+    "test": "mocha -r ts-node/register --full-trace --inline-diffs --recursive **/*.test.ts",
     "lint:test": "eslint -c .eslintrc.js '**/*.{js,ts,json}'",
     "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
     "clean": "rm -rf build logs *debug*.log",
-    "prepublish": "npm run clean && npm run lint:test && npm run tsc && npm test",
-    "postinstall": "npm run tsc"
+    "prepublish": "npm run clean && npm run lint:test && tsc && npm test",
+    "postinstall": "tsc && npm test"
   },
   "keywords": [
     "logging",

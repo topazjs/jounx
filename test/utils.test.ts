@@ -7,19 +7,7 @@ const {
     getPrettyString,
 } = require('../utils');
 
-const {
-    Logger,
-} = require('../index');
-
-const makeLogger = ( options = {} ) => new Logger({
-    "enableLogFiles": false,
-    "enableConsole": false,
-    ...options,
-});
-
 describe(`Utils`, function () {
-    /*const logger =*/ makeLogger();
-
     const objectToStringify = {
         "abc": 123,
         "def": true,
