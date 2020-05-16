@@ -1,4 +1,3 @@
-'use strict';
 
 /**
  * @FYI
@@ -13,22 +12,27 @@
  * Just gonna throw on FS access error.
  */
 
-const NODE_VERSION = process
+import chai from "chai";
+
+import fs from "fs";
+import { promisify } from "util";
+
+import {
+    destinationTypes,
+    Logger,
+    logTypes,
+} from "../index";
+
+const assert = chai.assert;
+
+const NODE_VERSION = ~~process
     .version
     .slice(1)
     .split(/\./g)
     .shift();
 
-const {
-    promisify,
-} = require('util');
-
-const fs = require('fs');
 const statAsync = promisify(fs.stat);
 const readFileAsync = promisify(fs.readFile);
-const { Logger } = require('../build/index.js');
-const chai = require('chai');
-const assert = chai.assert;
 
 function removeDirectory ( logFileDirectory ) {
     if ( NODE_VERSION >= 12 ) {
@@ -113,6 +117,7 @@ describe(`#info()`, () => {
     afterEach(() => removeDirectory(logFileDirectory));
 
     it(`should write a single message to the log file`, async function () {
+        logger.initFile();
 
         const date = new Date();
         const logMessage = `A test ${type} message! At ${date}!`;
@@ -237,7 +242,7 @@ describe(`#error()`, () => {
 });
 
 describe(`#debug()`, () => {
-    const type = `debug`;
+    const type = logTypes.DEBUG;
     const logger = makeLogger();
 
     const filename = logger[`${type}Filename`];
@@ -318,7 +323,7 @@ describe(`#debug()`, () => {
         const timerStartTime = logger.timers.get(TIMER_ID);
         const timerEndTime = process.hrtime.bigint();
         const timerResult = logger.getTimerMessage(TIMER_ID, timerEndTime, timerStartTime);
-        const message = logger.getText(`file`, `debug`, timerResult);
+        const message = logger.getText(destinationTypes.FILE, logTypes.DEBUG, timerResult);
         await logger.timeEnd(TIMER_ID, timerEndTime);
 
         let fileText = ``;
