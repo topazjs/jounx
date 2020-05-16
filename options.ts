@@ -1,20 +1,28 @@
 import path from "path";
 import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
-export type consoleMaxWidthType = {
-    size: number;
-    regEx: RegExp;
-};
+export enum fileWriteModeTypes {
+    ASYNC = "writeFileAsync",
+    STREAM = "writeFileStream",
+}
+
+export enum multilineTypes {
+    ALWAYS = "always",
+    AS_NEEDED = "as-needed",
+    NEVER = "never",
+}
+
+export type formattingType = string[];
 
 export class LoggerOptions {
-    dev: boolean = process.env.NODE_ENV === `development`;
+    dev = process.env.NODE_ENV === `development`;
 
     /**
      * File option defaults
      */
     enableLogFiles = false;
 
-    fileWriteMode = `writeFileAsync`;
+    fileWriteMode = fileWriteModeTypes.ASYNC;
 
     logFileDirectory = `./logs`;
 
@@ -33,9 +41,9 @@ export class LoggerOptions {
      */
     enableConsole = true;
 
-    consoleMaxWidth: number = process.stdout.columns || 120;
+    consoleMaxWidth = process.stdout.columns || 120;
 
-    consoleMultiLine = `always`;
+    consoleMultiLine = multilineTypes.ALWAYS;
 
     /**
      * Layout option defaults
@@ -51,54 +59,53 @@ export class LoggerOptions {
     /**
      * Formatting option defaults
      */
-    labelFormat: string[] = [ `bold` ];
+    labelFormat: formattingType = [ `bold` ];
 
-    pidFormat: string[] = [ `white` ];
+    pidFormat: formattingType = [ `white` ];
 
-    portFormat: string[] = [ `bold` ];
+    portFormat: formattingType = [ `bold` ];
 
-    dateFormat: string[] = [ `grey` ];
+    dateFormat: formattingType = [ `grey` ];
 
-    timeFormat: string[] = [ `yellow` ];
+    timeFormat: formattingType = [ `yellow` ];
 
-    timerFormat: string[] = [
+    timerFormat: formattingType = [
         `green`,
         `inverse`,
     ];
 
-    infoMessageFormat: string[] = [ `blueBright` ];
+    infoMessageFormat: formattingType = [ `blueBright` ];
 
-    infoSecondaryFormat: string[] = [ `whiteBright` ];
+    infoSecondaryFormat: formattingType = [ `whiteBright` ];
 
-    errorMessageFormat: string[] = [
+    errorMessageFormat: formattingType = [
         `bold`,
         `redBright`,
     ];
 
-    errorSecondaryFormat: string[] = [ `yellowBright` ];
+    errorSecondaryFormat: formattingType = [ `yellowBright` ];
 
-    debugMessageFormat: string[] = [ `cyanBright` ];
+    debugMessageFormat: formattingType = [ `cyanBright` ];
 
-    debugSecondaryFormat: string[] = [ `whiteBright` ];
+    debugSecondaryFormat: formattingType = [ `whiteBright` ];
 
     /**
      * Determines which method to use for writing the log to the
      * filesystem.
-     *  - writeFileAsync - async file write using fs.appendFile
-     *  - writeFileStream - keep file stream open and pipe new writes on demand
+     *  - fileWriteModeTypes.ASYNC  - async file write using fs.appendFile
+     *  - fileWriteModeTypes.STREAM - keep file stream open and pipe new writes on demand
      *
-     * @default "writeFileAsync"
-     * @param   {string}    value
-     * @returns {string}
+     * @param   {fileWriteModeTypes}    value
+     * @returns {fileWriteModeTypes}
      */
-    static getFileWriteMode ( value: string ) {
+    static getFileWriteMode ( value: fileWriteModeTypes ): fileWriteModeTypes {
         const regModes = /^writeFileAsync|writeFileStream$/;
 
         if ( regModes.test(value) ) {
             return value;
         }
 
-        return `writeFileAsync`;
+        return fileWriteModeTypes.ASYNC;
     }
 
     /**
@@ -123,7 +130,7 @@ export class LoggerOptions {
          * Just a quick check for `..` or `.` to handle relative paths
          */
         if ( regDots.test(value) ) {
-            return path.join(process.env.PWD || __dirname, value);
+            return path.resolve(process.env.PWD || `./`, value);
         }
 
         return value;
@@ -218,10 +225,6 @@ export class LoggerOptions {
             this.consoleMaxWidth = ~~options.consoleMaxWidth;
         }
 
-        /**
-         * @property {"always"|"as-needed"|"never"}
-         * @default "always"
-         */
         if ( `consoleMultiLine` in options ) {
             this.consoleMultiLine = options.consoleMultiLine;
         }
