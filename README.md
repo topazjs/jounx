@@ -204,7 +204,7 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
 
 ## Development
 
-Must have Node 12+ (to run tests fully at least)
+Must have Node 12+ (to run tests fully at least).  This is the non-typescript branch
 
 - Set it up
 
