@@ -1,5 +1,18 @@
 'use strict';
 
+/**
+ * @FYI
+ * There are race conditions in the tests here - I am aware. They are
+ * here for quick glance history and will be removed eventually.
+ *
+ * I do not plan to fix them.
+ *
+ * The way I write files now is going to change to *not care* what
+ * gets written, how much is written, etc.
+ *
+ * Just gonna throw on FS access error.
+ */
+
 const NODE_VERSION = process
     .version
     .slice(1)
