@@ -5,6 +5,7 @@
 - For Node 12 (might be ok on older ones, I dunno yet)
 - Uses the amazing `chalk` library to make stuff pretty ([check it out](https://github.com/chalk/chalk))
 - Made in Ubuntu so I may have left some linux-specific stuff in the tests somewhere
+- Now in TypeScript
 
 ## Usage
 
@@ -18,13 +19,13 @@ npm install --save jounx
 In your app, import and initialize at the top:
 ```javascript
 // import module
-const Jounx = require('jounx');
+const { Logger } = require('jounx');
 
 // grab an instance
 const logger = new Jounx();
 
 // ...or include an options object (see below)
-const logger = new Jounx({ "enableLogFiles": false, "prefixWithDateTime": false });
+const logger = new Jounx({ "enableLogFiles": true, "prefixWithDateTime": false });
 
 /**
  * Log a simple message
@@ -56,12 +57,12 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
      * Controls if user is shown the output for Logger.debug() in console or not (enabling log 
      * files will write either way)
      */
-    "dev": process.env.NODE_ENV === `development`,
+    "dev": $NODE_ENV === `development`,
 
     /**
      * Enables log file to be written while app is running
      */
-    "enableLogFiles": true,
+    "enableLogFiles": false,
 
     /**
      * Determines which method to use for writing the log to the
@@ -81,8 +82,6 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
      */
 
     "infoFilename": "info",
-
-    "warnFilename": "warn",
 
     "errorFilename": "error",
 
@@ -210,7 +209,6 @@ Must have Node 12+ (to run tests fully at least)
 
 ```bash
 npm install
-npm run tsc
 ```
 
 - Lint it
