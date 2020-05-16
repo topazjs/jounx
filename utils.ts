@@ -1,12 +1,11 @@
-'use strict';
 
 /**
  * Feed this whatever comes through the log or file writer to make something more
  * presentable.
- * @param   {*}         value
- * @returns {string}
+ * @param   {*}         value   -   any type value to be converted to string for display in log
+ * @returns {string}    stringified value
  */
-function getString ( value ) {
+export function getString ( value: Function|void|boolean|Promise<any>|number|{}|[]|string ): string {
     /**
      * Quick return since it will go through this all over again.
      */
@@ -89,9 +88,3 @@ function makeOptionsGetter ( options ) {
         };
     };
 }*/
-
-module.exports = {
-    getString,
-
-    // makeOptionsGetter,
-};

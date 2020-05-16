@@ -1,25 +1,34 @@
-'use strict';
+import chalk from "chalk";
 
-/* global BigInt*/
-const {
-    promisify,
-} = require('util');
-const fs = require('fs');
-const mkdirp = require('mkdirp');
-const chalk = require('chalk');
-const chalkConsole = new chalk.Instance({ 'level': 3 });
-const appendFileAsync = promisify(fs.appendFile);
-const readdirAsync = promisify(fs.readdir);
-const LoggerOptions = require('./options');
-const LoggerFileError = require('./errors/LoggerFileError');
+import fs from "fs";
+import { promisify } from "util";
+import LoggerFileError from "./errors/LoggerFileError";
+
+import LoggerOptions from "./options";
+
+import { getString } from "./utils";
+
+const chalkConsole: chalk.Chalk = new chalk.Instance({ 'level': 3 });
+
 const NANOSEC_PER_SEC = BigInt(1e9);
 const NANOSEC_PER_MS = BigInt(1e6);
-const utils = require('./utils');
 
-class Logger extends LoggerOptions {
-    constructor ( ...options ) {
-        super(...options);
-        this.timers = new Map();
+const appendFileAsync = promisify(fs.appendFile);
+const readdirAsync = promisify(fs.readdir);
+
+
+export default class Logger extends LoggerOptions {
+    timers: Map<any, bigint> = new Map();
+
+    fileWriter: (
+        filePath: string,
+        fileText: string
+    ) => void = null;
+
+    fileStream: fs.WriteStream|void = null;
+
+    constructor ( options: LoggerOptions ) {
+        super(options);
 
         if ( this.enableLogFiles === true ) {
             this.initFile();
@@ -30,7 +39,8 @@ class Logger extends LoggerOptions {
         this.fileWriter = this[ this.fileWriteMode ];
 
         try {
-            mkdirp.sync(this.logFileDirectory);
+            // eslint-disable-next-line no-sync
+            fs.mkdirSync(this.logFileDirectory, { "recursive": true });
         }
         catch (e) {
             throw new LoggerFileError(e);
@@ -40,7 +50,7 @@ class Logger extends LoggerOptions {
     }
 
     getFormatted ( destination, type, value = `` ) {
-        const stringValue = utils.getString(value);
+        const stringValue = getString(value);
         if ( destination === `file` ) {
             return stringValue;
         }
@@ -158,7 +168,7 @@ class Logger extends LoggerOptions {
         return this;
     }
 
-    writeFileStream ( filePath, fileText ) {
+    writeFileStream ( filePath: string, fileText: string ) {
         if ( !this.fileStream ) {
             this.fileStream = fs.createWriteStream(`${filePath}`);
 
@@ -175,16 +185,19 @@ class Logger extends LoggerOptions {
         return this;
     }
 
-    async writeFileAsync ( filePath, fileText ) {
+    async writeFileAsync ( filePath: string, fileText: string ) {
         await appendFileAsync(filePath, `${fileText}\n`);
 
         return this;
     }
 
-    async getNextFileIndex ( logFileDirectory, filename ) {
+    async getNextFileIndex ( logFileDirectory: string, filename: string ) {
         const dirItems = await readdirAsync(logFileDirectory);
         const baseFilenameLength = filename.length;
-        const matchingItems = dirItems.filter(_filename => _filename.slice(0, baseFilenameLength) === filename);
+        const matchingItems = dirItems.filter(_filename => {
+            const extractedName = _filename.slice(0, baseFilenameLength);
+            return extractedName === filename;
+        });
 
         return matchingItems.length;
     }
@@ -266,14 +279,14 @@ class Logger extends LoggerOptions {
         return this;
     }
 
-    async removeTimer ( id ) {
+    async removeTimer ( id: string ) {
         this.timers.delete(id);
 
         return this;
     }
 
-    getTimerMessage ( id, endTime, startTime = this.timers.get(id) ) {
-        const diff = endTime - startTime;
+    getTimerMessage ( id: string, endTime: bigint, startTime: bigint = this.timers.get(id) ) {
+        const diff: bigint = endTime - startTime;
 
         const ns = `${diff}ns`;
         const ms = `${diff / NANOSEC_PER_MS}ms`;
@@ -282,7 +295,7 @@ class Logger extends LoggerOptions {
         return `${id}: ${ns} (${ms}, ${sec})`;
     }
 
-    timeEnd ( id = `__SPONTANEOUS__`, endTime = process.hrtime.bigint() ) {
+    timeEnd ( id = `__SPONTANEOUS__`, endTime: bigint = process.hrtime.bigint() ) {
         if ( !id || !this.timers.has(id) ) {
             throw new Error(`No timer exists for ID ${id}. Make sure you included a .time('${id}') before calling .timeEnd('${id}')`);
         }
@@ -297,5 +310,3 @@ class Logger extends LoggerOptions {
         return this.file(`debug`, fileText);
     }
 }
-
-module.exports = Logger;

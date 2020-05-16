@@ -1,8 +1,5 @@
 'use strict';
 
-const chai = require('chai');
-const assert = chai.assert;
-
 const NODE_VERSION = process
     .version
     .slice(1)
@@ -16,7 +13,9 @@ const {
 const fs = require('fs');
 const statAsync = promisify(fs.stat);
 const readFileAsync = promisify(fs.readFile);
-const Logger = require('../index');
+const Logger = require('../build/index.js').default;
+const chai = require('chai');
+const assert = chai.assert;
 
 function removeDirectory ( logFileDirectory ) {
     if ( NODE_VERSION >= 12 ) {

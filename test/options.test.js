@@ -1,7 +1,7 @@
 'use strict';
 
-const Logger = require('../index');
-const LoggerOptions = require('../options');
+const Logger = require('../build/index.js').default;
+const LoggerOptions = require('../build/options.js').default;
 const chai = require('chai');
 const assert = chai.assert;
 
@@ -100,7 +100,7 @@ describe(`Initialization and options`, () => {
         const basicOptions = {
             "enableLogFiles": false,
             "enableConsole": false,
-            "enableExternal": false,
+            // "enableExternal": false,
         };
 
         it(`should use defaults when no options passed`, () => {

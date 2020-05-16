@@ -1,19 +1,31 @@
 module.exports = {
     "env": {
-        "browser": true,
         "commonjs": true,
         "es6": true,
         "node": true,
-        "jest": true
+        "mocha": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
     "globals": {
         "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
+        "SharedArrayBuffer": "readonly",
+        "BigInt": "readonly"
     },
     "parserOptions": {
-        "ecmaVersion": 2018
+        "project": "./tsconfig.json",
+        "projectFolderIgnoreList": [
+            "/node_modules/",
+            "/build/",
+            "/test/"
+        ],
+        "ecmaVersion": 2020,
+        "sourceType": "module"
     },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [ "@typescript-eslint" ],
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-newline": "error",
@@ -147,7 +159,7 @@ module.exports = {
         ],
         "lines-around-directive": "error",
         "lines-between-class-members": [
-            "error",
+            "warn",
             "always"
         ],
         "max-classes-per-file": "error",
@@ -183,7 +195,7 @@ module.exports = {
         "new-cap": "error",
         "new-parens": "error",
         "newline-after-var": "off",
-        "newline-before-return": "error",
+        "newline-before-return": "warn",
         "newline-per-chained-call": [
             "error",
             {

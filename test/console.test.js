@@ -15,9 +15,9 @@ afterEach(function () {
     console.trace = originalTrace;
 });
 
-const Logger = require('../index');
+const Logger = require('../build/index.js').default;
 
-const makeLogger = ( options = { dev: process.env.NODE_ENV === `development` }) => new Logger({
+const makeLogger = ( options = {} ) => new Logger({
     "enableLogFiles": false,
     "enableConsole": true,
     "prefixWithDateTime": false,

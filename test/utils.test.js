@@ -3,8 +3,8 @@
 const chai = require('chai');
 const assert = chai.assert;
 
-const utils = require('../utils');
-const Logger = require('../index');
+const utils = require('../build/utils.js');
+const Logger = require('../build/index.js').default;
 const makeLogger = ( options = {} ) => new Logger({
     "enableLogFiles": false,
     "enableConsole": false,

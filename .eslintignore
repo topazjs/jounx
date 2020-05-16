@@ -1,0 +1,9 @@
+build/
+.eslintrc.js
+node_modules/
+test/
+tsconfig.json
+package.json
+package-lock.json
+**/*.test.{js,ts}
+logs/

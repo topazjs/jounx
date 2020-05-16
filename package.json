@@ -1,15 +1,18 @@
 {
   "name": "jounx",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "A more useful console and/or file logging solution with colors",
-  "main": "index.js",
+  "main": "build/index.js",
   "private": false,
   "scripts": {
+    "tsc": "tsc",
     "test": "mocha --full-trace --inline-diffs --recursive",
     "test:dev": "mocha --full-trace --inline-diffs --recursive --watch",
-    "lint:test": "eslint -c .eslintrc.js --ignore-pattern 'node_modules/' --ignore-pattern 'test/' .",
-    "lint:fix": "eslint -c .eslintrc.js --fix --ignore-pattern 'node_modules/' --ignore-pattern 'test/' .",
-    "prepublish": "npm run lint:fix && npm test"
+    "lint:test": "eslint -c .eslintrc.js '**/*.{js,ts,json}'",
+    "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
+    "clean": "rm -rf build logs *debug*.log",
+    "prepublish": "npm run clean && npm run lint:test && npm run tsc && npm test",
+    "postinstall": "npm run clean && npm run tsc"
   },
   "keywords": [
     "logging",
@@ -25,17 +28,20 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "chalk": "^4.0.0",
-    "mkdirp": "^1.0.4"
+    "chalk": "^4.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/eslint": "^6.8.0",
     "@types/mocha": "^7.0.2",
+    "@types/node": "^14.0.1",
+    "@typescript-eslint/eslint-plugin": "^2.33.0",
+    "@typescript-eslint/parser": "^2.33.0",
     "chai": "^4.2.0",
-    "eslint": "^6.8.0",
+    "eslint": "^7.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2"
+    "mocha": "^7.1.2",
+    "typescript": "^3.9.2"
   },
   "engineStrict": false,
   "engines": {

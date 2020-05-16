@@ -210,6 +210,7 @@ Must have Node 12+ (to run tests fully at least)
 
 ```bash
 npm install
+npm run tsc
 ```
 
 - Lint it
