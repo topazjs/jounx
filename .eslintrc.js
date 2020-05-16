@@ -27,6 +27,7 @@ module.exports = {
     "parser": "@typescript-eslint/parser",
     "plugins": [ "@typescript-eslint" ],
     "rules": {
+        "@typescript-eslint/ban-ts-ignore": "warn",
         "accessor-pairs": "error",
         "array-bracket-newline": "error",
         "array-bracket-spacing": [
