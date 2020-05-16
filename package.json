@@ -8,7 +8,7 @@
   "scripts": {
     "tsc": "tsc",
     "test": "mocha --full-trace --inline-diffs --recursive",
-    "test:dev": "mocha --full-trace --inline-diffs --recursive --watch",
+    "test:dev": "mocha -r ts-node/register --full-trace --inline-diffs --recursive **/*.test.ts",
     "lint:test": "eslint -c .eslintrc.js '**/*.{js,ts,json}'",
     "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
     "clean": "rm -rf build logs *debug*.log",
@@ -42,7 +42,8 @@
     "chai": "^4.2.0",
     "eslint": "^7.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2"
+    "mocha": "^7.1.2",
+    "ts-node": "^8.10.1"
   },
   "engineStrict": false,
   "engines": {

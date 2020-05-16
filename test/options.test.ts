@@ -1,15 +1,12 @@
-'use strict';
+import chai from "chai";
+
+const assert = chai.assert;
 
 const {
     Logger,
-    formatTypes,
-    destinationTypes,
-    logTypes,
-} = require('../build/index.js');
+} = require('../index');
 
-const { LoggerOptions } = require('../build/options.js');
-const chai = require('chai');
-const assert = chai.assert;
+const { LoggerOptions } = require('../options');
 
 /**
  * Initialization

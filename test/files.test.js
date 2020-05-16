@@ -48,7 +48,7 @@ function removeDirectory ( logFileDirectory ) {
     }
 }
 
-function makeLogger ( options ) {
+function makeLogger ( options = {} ) {
     return new Logger({
         "fileWriteMode": `writeFileAsync`,
         "logFileDirectory": `./logs`,
@@ -58,10 +58,25 @@ function makeLogger ( options ) {
         "errorFilename": `error`,
         "debugFilename": `debug`,
         "logFileExtension": `log`,
+        ...options,
     });
 }
 
 describe(`Directory management`, () => {
+    it(`should throw when directory access is denied`, function () {
+        if ( process.env.USER === `root` ) {
+            throw new Error(`Please run tests as non-root user`);
+        }
+        const restrictedDir = `/root/jounxlogs`;
+        assert.throws(function () {
+            new Logger({
+                "logFileDirectory": restrictedDir,
+                "enableLogFiles": true,
+                "enableConsole": false,
+            });
+        });
+    });
+
     it(`should create a new directory if missing`, async () => {
         const logger = makeLogger();
         removeDirectory(logger.logFileDirectory);
@@ -98,7 +113,6 @@ describe(`#info()`, () => {
     afterEach(() => removeDirectory(logFileDirectory));
 
     it(`should write a single message to the log file`, async function () {
-        logger.initFile();
 
         const date = new Date();
         const logMessage = `A test ${type} message! At ${date}!`;
@@ -106,7 +120,7 @@ describe(`#info()`, () => {
 
         let fileText = ``;
         try {
-            fileText = await readFileAsync(filePath, { "encoding": `utf8` });
+            fileText = fs.readFileSync(filePath, { "encoding": `utf8` });
         }
         catch ( e ) {
             assert.notExists(e);

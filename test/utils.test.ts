@@ -1,16 +1,15 @@
-'use strict';
+import chai from "chai";
 
-const chai = require('chai');
 const assert = chai.assert;
 
 const {
     getString,
     getPrettyString,
-} = require('../build/utils.js');
+} = require('../utils');
 
 const {
     Logger,
-} = require('../build/index.js');
+} = require('../index');
 
 const makeLogger = ( options = {} ) => new Logger({
     "enableLogFiles": false,
@@ -19,7 +18,7 @@ const makeLogger = ( options = {} ) => new Logger({
 });
 
 describe(`Utils`, function () {
-    const logger = makeLogger();
+    /*const logger =*/ makeLogger();
 
     const objectToStringify = {
         "abc": 123,
@@ -72,6 +71,7 @@ describe(`Utils`, function () {
         });
 
         it(`should change natural occurring NaN, exact NaN ref, Infinity or a Promise into [unknown]`, function () {
+            // @ts-ignore
             assert.equal(getPrettyString(2 + undefined), `[unknown]`);
             assert.equal(getPrettyString(NaN), `[unknown]`);
             assert.equal(getPrettyString(Infinity), `[unknown]`);
@@ -141,6 +141,7 @@ describe(`Utils`, function () {
         });
 
         it(`should change natural occurring NaN, exact NaN ref, Infinity or a Promise into [unknown]`, function () {
+            // @ts-ignore
             assert.equal(getString(2 + undefined), `[unknown]`);
             assert.equal(getString(NaN), `[unknown]`);
             assert.equal(getString(Infinity), `[unknown]`);
