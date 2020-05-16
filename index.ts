@@ -62,7 +62,7 @@ export class Logger extends LoggerOptions {
 
     fileStream: fs.WriteStream | null = null;
 
-    constructor ( options: LoggerOptions ) {
+    constructor ( options?: LoggerOptions | {} ) {
         super(options);
 
         if ( this.enableLogFiles === true ) {

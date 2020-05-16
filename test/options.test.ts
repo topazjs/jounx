@@ -1,12 +1,17 @@
 import chai from "chai";
 
-const assert = chai.assert;
-
-const {
+import {
+    destinationTypes,
     Logger,
-} = require('../index');
+    logTypes,
+} from "../index";
 
-const { LoggerOptions } = require('../options');
+import {
+    fileWriteModeTypes,
+    LoggerOptions,
+} from "../options";
+
+const assert = chai.assert;
 
 /**
  * Initialization
@@ -122,7 +127,7 @@ describe(`Initialization and options`, () => {
                 });
 
                 // destination "file" so we avoid the formatting characters
-                const prefix = logger.getPrefix(`file`, `info`);
+                const prefix = logger.getPrefix(destinationTypes.FILE, logTypes.INFO);
 
                 assert.equal(prefix, logger.pidPrefix, `Mismatch with provided pidPrefix`);
 
@@ -139,7 +144,7 @@ describe(`Initialization and options`, () => {
                     });
 
                     // destination "file" so we avoid the formatting characters
-                    const prefix = logger.getPrefix(`file`, `info`);
+                    const prefix = logger.getPrefix(destinationTypes.FILE, logTypes.INFO);
 
                     assert.equal(prefix, logger.portPrefix, `Mismatch with provided portPrefix`);
                 });
@@ -151,7 +156,7 @@ describe(`Initialization and options`, () => {
                     });
 
                     // destination "file" so we avoid the formatting characters
-                    const prefix = logger.getPrefix(`file`, `info`);
+                    const prefix = logger.getPrefix(destinationTypes.FILE, logTypes.INFO);
 
                     assert.include(prefix, logger.pidPrefix, `Mismatch with provided pidPrefix`);
                 });
@@ -192,22 +197,6 @@ describe(`Initialization and options`, () => {
             });
         });
 
-        /*
-         *describe(`io.fileWriteMode set as "streamFile"`, function () {
-         *  it(`should match all defaults`, function () {
-         *      const logger1 = new Logger({ "io": { "file": { "mode": `streamFile` } } });
-         *      const logger2 = new Logger();
-         *      assert.deepEqual(logger1, logger2);
-         *  });
-         *
-         *  it(`should assign the streamFile method to fileWriter`, async function () {
-         *      const logger = new Logger({ "io": { "file": { "mode": `streamFile` } } });
-         *      await logger.initFile();
-         *      expect(logger.fileWriter).toEqual(logger.streamFile);
-         *  });
-         *});
-         */
-
         describe(`fileWriteMode passed`, () => {
             it(`should not allow any unsupported value to be passed`, () => {
                 const logger1 = new Logger({ "fileWriteMode": `abcdefgHIJKLMNOP123345` });
@@ -216,13 +205,13 @@ describe(`Initialization and options`, () => {
             });
 
             it(`should match the defaults when set to "writeFileAsync"`, () => {
-                const logger1 = new Logger({ "fileWriteMode": `writeFileAsync` });
+                const logger1 = new Logger({ "fileWriteMode": fileWriteModeTypes.ASYNC });
                 const logger2 = new Logger();
                 assert.deepEqual(logger1, logger2, `Correct/default option passed for fileWriteMode but the result value or parent props differ somehow`);
             });
 
             it(`should assign the writeFileAsync method to fileWriter when set to "writeFileAsync"`, () => {
-                const logger = new Logger({ "fileWriteMode": `writeFileAsync` });
+                const logger = new Logger({ "fileWriteMode": fileWriteModeTypes.ASYNC });
                 logger.initFile();
                 assert.equal(logger.fileWriter, logger.writeFileAsync, `fileWriter was not assigned to writeFileAsync as expected`);
             });

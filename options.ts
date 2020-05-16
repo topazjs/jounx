@@ -143,7 +143,7 @@ export class LoggerOptions {
      */
 
     // eslint-disable-next-line complexity
-    constructor ( inputOptions: LoggerOptions|{}|[]|void ) {
+    constructor ( inputOptions?: LoggerOptions | {} ) {
         let options = inputOptions;
 
         if ( !options || Object.keys(options).length === 0 || typeof options !== `object` ) {
