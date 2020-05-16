@@ -13,52 +13,75 @@ class LoggerOptions {
      * File option defaults
      */
     fileWriteMode = `writeFileAsync`;
+
     logFileDirectory = `./logs`;
+
     enableLogFiles = true;
+
     infoFilename = `info`;
+
     errorFilename = `error`;
+
     debugFilename = `debug`;
+
     logFileExtension = `log`;
+
     logFileSizeLimit = 5000000;
 
     /**
      * Console option defaults
      */
     enableConsole = true;
+
     consoleMaxWidth: consoleMaxWidthType = {
         size: process.stdout.columns || 120,
         regEx: new RegExp(`(.{${process.stdout.columns || 120}})`, `g`),
     };
+
     consoleMultiLine = `always`;
 
     /**
      * Layout option defaults
      */
     prefixWithDateTime = true;
+
     prefixWithMessageType = true;
+
     pidPrefix = String(process.pid);
+
     portPrefix = ``;
 
     /**
      * Formatting option defaults
      */
     labelFormat: string[] = [ `bold` ];
+
     pidFormat: string[] = [ `white` ];
+
     portFormat: string[] = [ `bold` ];
+
     dateFormat: string[] = [ `grey` ];
+
     timeFormat: string[] = [ `yellow` ];
+
     timerFormat: string[] = [
         `green`,
         `inverse`,
     ];
+
     infoMessageFormat: string[] = [ `blueBright` ];
+
     infoSecondaryFormat: string[] = [ `whiteBright` ];
+
     errorMessageFormat: string[] = [
         `bold`,
         `redBright`,
     ];
+
     errorSecondaryFormat: string[] = [ `yellowBright` ];
+
     debugMessageFormat: string[] = [ `cyanBright` ];
+
     debugSecondaryFormat: string[] = [ `whiteBright` ];
 
     /**

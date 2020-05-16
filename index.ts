@@ -196,6 +196,7 @@ export default class Logger extends LoggerOptions {
         const baseFilenameLength = filename.length;
         const matchingItems = dirItems.filter(_filename => {
             const extractedName = _filename.slice(0, baseFilenameLength);
+
             return extractedName === filename;
         });
 
