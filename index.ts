@@ -1,10 +1,19 @@
 import chalk from "chalk";
-
 import fs from "fs";
+
 import { promisify } from "util";
 import { LoggerFileError } from "./errors/LoggerFileError";
-import { LoggerOptions } from "./options";
-import { getString } from "./utils";
+
+import {
+    formattingType,
+    LoggerOptions,
+    multilineTypes,
+} from "./options";
+
+import {
+    getPrettyString,
+    getString,
+} from "./utils";
 
 const chalkConsole: chalk.Chalk = new chalk.Instance({ 'level': 3 });
 
@@ -14,15 +23,44 @@ const NANOSEC_PER_MS = BigInt(1e6);
 const appendFileAsync = promisify(fs.appendFile);
 const readdirAsync = promisify(fs.readdir);
 
+export type fileWriterType = (
+    filePath: string,
+    fileText: string
+) => void;
+
+export enum destinationTypes {
+    CONSOLE = "console",
+    FILE = "file",
+}
+
+export enum logTypes {
+    INFO = "info",
+    ERROR = "error",
+    DEBUG = "debug",
+    TIMER = "timer",
+}
+
+export enum formatTypes {
+    LABEL = "labelFormat",
+    PID = "pidFormat",
+    PORT = "portFormat",
+    DATE = "dateFormat",
+    TIME = "timeFormat",
+    TIMER = "timerFormat",
+    INFO = "infoMessage",
+    INFO2 = "infoSecondary",
+    ERROR = "errorMessage",
+    ERROR2 = "errorSecondary",
+    DEBUG = "debugMessage",
+    DEBUG2 = "debugSecondary",
+}
+
 export class Logger extends LoggerOptions {
     timers: Map<any, bigint> = new Map();
 
-    fileWriter: (
-        filePath: string,
-        fileText: string
-    ) => void = null;
+    fileWriter: fileWriterType | null = null;
 
-    fileStream: fs.WriteStream|void = null;
+    fileStream: fs.WriteStream | null = null;
 
     constructor ( options: LoggerOptions ) {
         super(options);
@@ -46,13 +84,17 @@ export class Logger extends LoggerOptions {
         return this;
     }
 
-    getFormatted ( destination, type, value = `` ) {
-        const stringValue = getString(value);
-        if ( destination === `file` ) {
-            return stringValue;
+    getTypeFormatting ( type: formatTypes ): formattingType {
+        return this[ type ] || [];
+    }
+
+    getFormatted ( destination: destinationTypes, formatType: formatTypes, value = `` ): string {
+        if ( destination === destinationTypes.FILE ) {
+            return getString(value);
         }
 
-        const formats = this[ `${type}Format` ];
+        const stringValue = getPrettyString(value);
+        const formats = this.getTypeFormatting(formatType);
 
         const formatter = formats.reduce(( func, op ) => {
             if ( op ) {
@@ -71,7 +113,7 @@ export class Logger extends LoggerOptions {
      * @param   {string}    destination
      * @return  {string}
      */
-    getPrefix ( destination, type ) {
+    getPrefix ( destination: destinationTypes, type: logTypes ) {
         const prefixArray = [];
         const prefixWithDateTime = this.prefixWithDateTime;
         const prefixWithMessageType = this.prefixWithMessageType;
@@ -83,12 +125,12 @@ export class Logger extends LoggerOptions {
         let time = now.toLocaleTimeString();
         let label = `${type.toUpperCase()}:`;
 
-        if ( destination === `log` ) {
-            pidPrefix = this.getFormatted(destination, `pid`, pidPrefix);
-            portPrefix = this.getFormatted(destination, `port`, portPrefix);
-            date = this.getFormatted(destination, `date`, date);
-            time = this.getFormatted(destination, `time`, time);
-            label = this.getFormatted(destination, `label`, label);
+        if ( destination === destinationTypes.CONSOLE ) {
+            pidPrefix = this.getFormatted(destination, formatTypes.PID, pidPrefix);
+            portPrefix = this.getFormatted(destination, formatTypes.PORT, portPrefix);
+            date = this.getFormatted(destination, formatTypes.DATE, date);
+            time = this.getFormatted(destination, formatTypes.TIME, time);
+            label = this.getFormatted(destination, formatTypes.LABEL, label);
         }
 
         if ( pidPrefix ) {
@@ -117,7 +159,7 @@ export class Logger extends LoggerOptions {
      * @param   {string[]}  messages
      * @return {string}
      */
-    getText ( destination, type, ...messages ) {
+    getText ( destination: destinationTypes, type: logTypes, ...messages ) {
         const prefix = this.getPrefix(destination, type);
         const multiline = this.consoleMultiLine;
         const maxWidth = this.consoleMaxWidth;
@@ -128,11 +170,11 @@ export class Logger extends LoggerOptions {
             messages.map(row => row.replace(regMaxWidth, `$1\n`)).join(`\n`),
         ];
 
-        const needsMultiLine = multiline === `always` || (
-            multiline === `as-needed` && prefix.length > maxWidth / 2
+        const needsMultiLine = multiline === multilineTypes.ALWAYS || (
+            multiline === multilineTypes.AS_NEEDED && prefix.length > maxWidth / 2
         );
 
-        if ( destination !== `file` && needsMultiLine ) {
+        if ( destination !== destinationTypes.FILE && needsMultiLine ) {
             return line.join(`\n`);
         }
 
@@ -145,14 +187,14 @@ export class Logger extends LoggerOptions {
      * @param   {?string[]}  textArgs
      * @return {Logger}
      */
-    log ( type, ...textArgs ) {
+    log ( type: logTypes, ...textArgs ) {
         if ( this.enableConsole ) {
-            const logText = this.getText(`log`, type, ...textArgs);
+            const logText = this.getText(destinationTypes.CONSOLE, type, ...textArgs);
 
-            if ( type === `timer` ) {
+            if ( type === logTypes.TIMER ) {
                 console.log(logText);
             }
-            else if ( type === `debug` ) {
+            else if ( type === logTypes.DEBUG ) {
                 console.trace(logText);
             }
             else {
@@ -198,7 +240,7 @@ export class Logger extends LoggerOptions {
         return matchingItems.length;
     }
 
-    async file ( type, ...textArgs ) {
+    async file ( type: logTypes, ...textArgs ) {
         const logFileDirectory = this.logFileDirectory;
         const logFileExtension = this.logFileExtension;
         const logFileSizeLimit = this.logFileSizeLimit;
@@ -207,7 +249,7 @@ export class Logger extends LoggerOptions {
         if ( this.enableLogFiles && filename ) {
             const pathStart = `${logFileDirectory}/${filename}`;
             const currentPath = `${pathStart}.${logFileExtension}`;
-            const fileText = this.getText(`file`, type, ...textArgs);
+            const fileText = this.getText(destinationTypes.FILE, type, ...textArgs);
 
             fs.stat(currentPath, async ( error, stat ) => {
                 if ( !error && stat && stat.size > logFileSizeLimit ) {
@@ -215,7 +257,7 @@ export class Logger extends LoggerOptions {
                     const newPath = `${currentPath}.${newIndex}`;
                     fs.rename(currentPath, newPath, error => {
                         if ( error ) {
-                            this.log(`error`, `Failed to rename large file so killing file writing for this file`, error);
+                            this.log(logTypes.ERROR, `Failed to rename large file so killing file writing for this file`, error);
                             this[ `${type}Filename` ] = ``;
                         }
                     });
@@ -228,44 +270,50 @@ export class Logger extends LoggerOptions {
         return this;
     }
 
-    info ( msg, ...args ) {
-        const logText = this.getFormatted(`log`, `infoMessage`, msg);
-        const fileText = this.getFormatted(`file`, `infoMessage`, msg);
-        const otherLogTextArray = args.map(this.getFormatted.bind(this, `log`, `infoSecondary`));
-        const otherFileTextArray = args.map(this.getFormatted.bind(this, `file`, `infoSecondary`));
+    info ( msg: any, ...args: any[] ) {
+        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.INFO, msg);
+        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.INFO, msg);
+        const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.INFO2);
+        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.INFO2);
+        const otherLogTextArray = args.map(consoleMapper);
+        const otherFileTextArray = args.map(fileMapper);
 
-        this.log(`info`, logText, ...otherLogTextArray);
+        this.log(logTypes.INFO, logText, ...otherLogTextArray);
 
-        return this.file(`info`, fileText, ...otherFileTextArray);
+        return this.file(logTypes.INFO, fileText, ...otherFileTextArray);
     }
 
-    error ( msg, ...args ) {
-        const logText = this.getFormatted(`log`, `errorMessage`, msg);
+    error ( msg: any, ...args: any[] ) {
+        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.ERROR, msg);
 
         if ( args.length > 0 ) {
-            const otherLogTextArray = args.map(this.getFormatted.bind(this, `log`, `errorSecondary`));
-            this.log(`error`, logText, ...otherLogTextArray);
+            const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.ERROR2);
+            const otherLogTextArray = args.map(consoleMapper);
+            this.log(logTypes.ERROR, logText, ...otherLogTextArray);
         }
         else {
-            this.log(`error`, logText);
+            this.log(logTypes.ERROR, logText);
         }
 
-        const fileText = this.getFormatted(`file`, `errorMessage`, msg);
-        const otherFileTextArray = args.map(this.getFormatted.bind(this, `file`, `errorSecondary`));
+        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.ERROR2);
+        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.ERROR, msg);
+        const otherFileTextArray = args.map(fileMapper);
 
-        return this.file(`error`, fileText, ...otherFileTextArray);
+        return this.file(logTypes.ERROR, fileText, ...otherFileTextArray);
     }
 
-    debug ( msg, ...args ) {
+    debug ( msg: any, ...args: any[] ) {
         if ( this.dev ) {
-            const logText = this.getFormatted(`log`, `debugMessage`, msg);
-            const otherLogTextArray = args.map(this.getFormatted.bind(this, `log`, `debugSecondary`));
-            this.log(`debug`, logText, ...otherLogTextArray);
+            const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.DEBUG2);
+            const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.DEBUG, msg);
+            const otherLogTextArray = args.map(consoleMapper);
+            this.log(logTypes.DEBUG, logText, ...otherLogTextArray);
         }
-        const fileText = this.getFormatted(`file`, `debugMessage`, msg);
-        const otherFileTextArray = args.map(this.getFormatted.bind(this, `file`, `debugSecondary`));
+        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.DEBUG2);
+        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.DEBUG, msg);
+        const otherFileTextArray = args.map(fileMapper);
 
-        return this.file(`debug`, fileText, ...otherFileTextArray);
+        return this.file(logTypes.DEBUG, fileText, ...otherFileTextArray);
     }
 
     time ( id = `__SPONTANEOUS__` ) {
@@ -281,7 +329,7 @@ export class Logger extends LoggerOptions {
         return this;
     }
 
-    getTimerMessage ( id: string, endTime: bigint, startTime: bigint = this.timers.get(id) ) {
+    getTimerMessage ( id: string, endTime: bigint, startTime: bigint ) {
         const diff: bigint = endTime - startTime;
 
         const ns = `${diff}ns`;
@@ -292,17 +340,18 @@ export class Logger extends LoggerOptions {
     }
 
     timeEnd ( id = `__SPONTANEOUS__`, endTime: bigint = process.hrtime.bigint() ) {
-        if ( !id || !this.timers.has(id) ) {
+        const startTime = this.timers.get(id);
+        if ( !id || !startTime ) {
             throw new Error(`No timer exists for ID ${id}. Make sure you included a .time('${id}') before calling .timeEnd('${id}')`);
         }
 
-        const timerResult = this.getTimerMessage(id, endTime);
-        const logText = this.getFormatted(`log`, `timer`, timerResult);
-        const fileText = this.getFormatted(`file`, `timer`, timerResult);
+        const timerResult = this.getTimerMessage(id, endTime, startTime);
+        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.TIMER, timerResult);
+        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.TIMER, timerResult);
 
         this.removeTimer(id);
-        this.log(`timer`, logText);
+        this.log(logTypes.TIMER, logText);
 
-        return this.file(`debug`, fileText);
+        return this.file(logTypes.DEBUG, fileText);
     }
 }

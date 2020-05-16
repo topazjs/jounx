@@ -90,7 +90,7 @@ describe(`Console`, function () {
             assert.throws(() => logger.timeEnd(`abc123_NOTREAL_456`, process.hrtime.bigint()));
         });
 
-        it(`should write a timer result to the console log output`, async function () {
+        it(`should write a timer result to the console log output`, function () {
             const expectedOutput = [];
             const TIMER_ID = `_INFO_TIMER_`;
             logger.time(TIMER_ID);
@@ -102,11 +102,11 @@ describe(`Console`, function () {
             assert.typeOf(timerEnd, `bigint`);
             assert.isTrue(timerEnd > timerStart);
 
-            await logger.timeEnd(TIMER_ID, timerEnd);
+            logger.timeEnd(TIMER_ID, timerEnd);
 
             const message = logger.getTimerMessage(TIMER_ID, timerEnd, timerStart);
-            const formattedMessage = logger.getFormatted(`log`,`timer`, message);
-            const full = logger.getText(`log`, `timer`, formattedMessage);
+            const formattedMessage = logger.getFormatted(`console`,`timerFormat`, message);
+            const full = logger.getText(`console`, `timer`, formattedMessage);
             expectedOutput.push(full);
 
             assert.includeMembers(logOutput, expectedOutput);
@@ -131,8 +131,8 @@ describe(`Console`, function () {
             const expectedOutput = [];
             logger.info(message);
 
-            const formattedMessage = logger.getFormatted(`log`,`infoMessage`, message);
-            const full = logger.getText(`log`, `info`, formattedMessage);
+            const formattedMessage = logger.getFormatted(`console`, `infoMessage`, message);
+            const full = logger.getText(`console`, `info`, formattedMessage);
             expectedOutput.push(full);
 
             assert.includeMembers(infoOutput, expectedOutput);
@@ -166,8 +166,8 @@ describe(`Console`, function () {
             const logger = makeLogger();
             logger.error(message);
 
-            const formattedMessage = logger.getFormatted(`log`,`errorMessage`, message);
-            const full = logger.getText(`log`, `error`, formattedMessage);
+            const formattedMessage = logger.getFormatted(`console`,`errorMessage`, message);
+            const full = logger.getText(`console`, `error`, formattedMessage);
             expectedOutput.push(full);
 
             assert.includeMembers(errorOutput, expectedOutput);
@@ -177,9 +177,9 @@ describe(`Console`, function () {
             const expectedOutput = [];
             logger.error(message, message2);
 
-            const formattedMessage = logger.getFormatted(`log`, `errorMessage`, message);
-            const formattedMessage2 = logger.getFormatted(`log`, `errorSecondary`, message2);
-            const full = logger.getText(`log`, `error`, formattedMessage, formattedMessage2);
+            const formattedMessage = logger.getFormatted(`console`, `errorMessage`, message);
+            const formattedMessage2 = logger.getFormatted(`console`, `errorSecondary`, message2);
+            const full = logger.getText(`console`, `error`, formattedMessage, formattedMessage2);
             expectedOutput.push(full);
 
             assert.includeMembers(errorOutput, expectedOutput);
@@ -189,9 +189,9 @@ describe(`Console`, function () {
             const expectedOutput = [];
             logger.error(message, message2, message3);
 
-            const formattedMessage = logger.getFormatted(`log`, `errorMessage`, message);
-            const messages = [ message2, message3 ].map(logger.getFormatted.bind(logger, `log`, `errorSecondary`))
-            const full = logger.getText(`log`, `error`, formattedMessage, ...messages);
+            const formattedMessage = logger.getFormatted(`console`, `errorMessage`, message);
+            const messages = [ message2, message3 ].map(logger.getFormatted.bind(logger, `console`, `errorSecondary`))
+            const full = logger.getText(`console`, `error`, formattedMessage, ...messages);
             expectedOutput.push(full);
 
             assert.includeMembers(errorOutput, expectedOutput);
@@ -225,8 +225,8 @@ describe(`Console`, function () {
             const logger = makeLogger({ dev: true });
 
             const message = `Hello, world!`;
-            const formattedMessage = logger.getFormatted(`log`,`debugMessage`, message);
-            const full = logger.getText(`log`, `debug`, formattedMessage);
+            const formattedMessage = logger.getFormatted(`console`,`debugMessage`, message);
+            const full = logger.getText(`console`, `debug`, formattedMessage);
             expectedOutput.push(full);
 
             logger.debug(message);
