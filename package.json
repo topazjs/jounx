@@ -13,7 +13,7 @@
     "clean": "rm -rf build/ logs/ *debug*.log",
     "final-checks": "npm run clean && npm run lint:test && npm run tsc && npm test",
     "postinstall": "npm run tsc",
-    "prepublishOnly": "npm run final-checks",
+    "prepublishOnly": "npm version patch",
     "preversion": "npm run final-checks"
   },
   "keywords": [
