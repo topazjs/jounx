@@ -6,12 +6,12 @@ import { LoggerFileError } from "./errors/LoggerFileError";
 import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
 import {
+    LoggerOptions,
     destinationTypes,
     eventInfoType,
     fileWriterType,
-    formattingType,
     formatTypes,
-    LoggerOptions,
+    formattingType,
     logTypes,
     multilineTypes,
 } from "./options";
