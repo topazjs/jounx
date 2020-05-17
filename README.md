@@ -1,11 +1,21 @@
 # jounx
 
-## yay
+## Reqz
 
-- For Node 12 (might be ok on older ones, I dunno yet)
-- Uses the amazing `chalk` library to make stuff pretty ([check it out](https://github.com/chalk/chalk))
-- Made in Ubuntu so I may have left some linux-specific stuff in the tests somewhere
-- Now in TypeScript
+- Node.js 12+ (cuz syntax)
+- Linux (not really but if you're already doin stuff why not)
+-
+
+## Makes use of
+
+- The amazing `chalk` library to make stuff pretty ([check it out](https://github.com/chalk/chalk))
+- [TypeScript](https://www.typescriptlang.org/) throughout (finally - *but still kind of a work in progress for the moment*)
+- [ESLint](https://eslint.org/) for the code stdz
+- [Mocha](https://mochajs.org/) & [Chai](https://www.chaijs.com/) to make testing a little less terrible
+
+### Random things
+
+- Made in Ubuntu so I may have left some linux-specific stuff in the tests or other places.  Just upgrade to linux if you haven't already and nothin to worry about
 
 ## Usage
 
@@ -68,24 +78,12 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
      * Determines which method to use for writing the log to the
      * filesystem.
      *  - writeFileAsync - async file write using fs.appendFile
+     * *experimental*
      *  - writeFileStream - keep file stream open and pipe new writes on demand
      */
     "fileWriteMode": "writeFileAsync",
 
-    /**
-     * Each type of output can be saved to a different file in case
-     * you want to save your errors away from your regular info.
-     *
-     * Any that are missing custom or default names on purpose will not
-     * be saved.  Also if two or more share the same name they will write
-     * to the same file.
-     */
-
-    "infoFilename": "info",
-
-    "errorFilename": "error",
-
-    "debugFilename": "debug",
+    "logFilename": "info.log",
 
     /**
      * Directory to store the log files if `enableLogFile` is `true`
@@ -101,17 +99,7 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
      *  path.join(__dirname, "./logs")
      *
      */
-    "logFileDirectory": "./logs",
-
-    /**
-     * Extension to use at the end of the filename
-     */
-    "logFileExtension": "log",
-
-    /**
-     * Number of bytes to allow log to reach before renaming and starting a new one
-     */
-    "logFileSizeLimit": 5000000,
+    "logDirectory": "./logs",
 
     /**
      * Pretty much the main point of this lib but maybe you don't want
@@ -120,12 +108,14 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
     "enableConsole": true,
 
     /**
+     * *experimental*
      * Max amount of text that will attempt to fit on one line before a line break
      * is inserted
      */
     "consoleMaxWidth": [width of terminal window or 120 if unavailable],
 
     /**
+     * *experimental*
      * Put the prefix info (date/time, PID, etc) on its own line above the
      * primary (first argument provided to one of the loggers) message.
      *
@@ -134,7 +124,7 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
      * 
      * **Only affects console output - file primary messages will remain on the same line as prefix**
      */
-    "consoleMultiLine": `always`,
+    "consoleMultiLine": `always`, // or `never` or `as-needed`
 
     /**
      * The message will be prepended with a locale-formatted datetime
@@ -203,13 +193,14 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
 
 ## Development
 
-Must have Node 12+ (to run tests fully at least)
-
 - Set it up
 
 ```bash
 npm install
 ```
+
+- Write some code...
+- etc.
 
 - Lint it
 
