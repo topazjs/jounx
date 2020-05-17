@@ -86,6 +86,8 @@ describe(`#info()`, () => {
     const type = `info`;
     const date = new Date();
     const logMessage = `A test ${type} message! At ${date}!`;
+    const logMessage2 = `Oh wow ANOTHER test ${type} message how lucky are we?? At ${date}!`;
+    const logMessage3 = `Well this is probly it for ${type} messages.  Bummer - ${date}`;
     // const filename = logger.logFilename;
     // const logDirectory = logger.logDirectory;
     // const filePath = `${logDirectory}/${filename}`;
@@ -106,6 +108,35 @@ describe(`#info()`, () => {
         });
 
         logger[ type ](logMessage);
+    });
+
+    it(`should write three messages to the log file`, function ( done ) {
+        const logger = makeLogger({
+            "dev": true,
+            "onFileWriteStart": function ( info: eventInfoType ) {
+                console.log(`starting file write`, info.fileWriteId);
+            },
+            "onFileWriteFinish": function ( info: eventInfoType ) {
+                console.log(`stopping file write`, info.fileWriteId);
+                const fileText = fs.readFileSync(info.currentPath, { "encoding": `utf8` });
+
+                const index = fileText.indexOf(logMessage);
+                assert.isAbove(index, -1);
+                assert.equal(fileText.slice(index, logMessage.length), `${logMessage}\n`);
+
+                const index2 = fileText.indexOf(logMessage2);
+                assert.isAbove(index2, -1);
+                assert.equal(fileText.slice(index2, logMessage2.length), `${logMessage2}\n`);
+
+                const index3 = fileText.indexOf(logMessage3);
+                assert.isAbove(index3, -1);
+                assert.equal(fileText.slice(index3, logMessage3.length), `${logMessage3}\n`);
+                removeDirectory(this.logDirectory);
+                done();
+            },
+        });
+
+        logger[ type ](logMessage, logMessage2, logMessage3);
     });
 });
 

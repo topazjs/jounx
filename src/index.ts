@@ -193,7 +193,7 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
     writeFileAsync: fileWriterType = ( filePath, fileText ) =>
         appendFileAsync(filePath, `${fileText}\n`, { "encoding": `utf8` });
 
-    async file ( type: logTypes, fileText ) {
+    file ( type: logTypes, fileText ) {
         const logDirectory = this.logDirectory;
         const filename = this.logFilename;
         const pathStart = `${logDirectory}/${filename}`;
@@ -206,7 +206,7 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
             fileWriteId,
         };
 
-        Promise
+        return Promise
             .resolve(eventInfo)
             .then(( info: eventInfoType ) => {
                 if ( this.onFileWriteStart ) {
@@ -216,13 +216,13 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
                 return info;
             })
             .catch(e => {
-                this.error(`Problem with onFileWriteStart handler provided`, e);
+                console.error(`Problem with onFileWriteStart handler provided`, e);
 
                 return eventInfo;
             })
             .then(( info: eventInfoType ) => this.fileWriter(currentPath, fileText).then(() => info))
             .catch(e => {
-                this.error(`Problem with fileWriter (${this.fileWriteMode})`, e);
+                console.error(`Problem with fileWriter (${this.fileWriteMode})`, e);
 
                 return eventInfo;
             })
@@ -232,10 +232,8 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
                 }
             })
             .catch(e => {
-                this.error(`Problem with onFileWriteFinish handler provided`, e);
+                console.error(`Problem with onFileWriteFinish handler provided`, e);
             });
-
-        return this;
     }
 
     generic (
@@ -283,8 +281,7 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
 
         Promise
             .all(logActions)
-            .catch(error => this.error(`Had trouble logging a message - `, error));
-
+            .catch(error => console.error(`Had trouble logging a message - `, error));
     }
 
     info ( ...messages: any[] ) {
