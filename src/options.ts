@@ -118,7 +118,7 @@ export abstract class LoggerOptions {
     timeFormat: formattingType = [ `yellow` ];
 
     timerFormat: formattingType = [
-        `green`,
+        `greenBright`,
         `inverse`,
     ];
 
