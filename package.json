@@ -12,7 +12,7 @@
     "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
     "clean": "rm -rf build/ logs/ *debug*.log",
     "prepublishOnly": "npm run lint:test && npm run tsc && npm test",
-    "postinstall": "npm install && npm run tsc"
+    "postinstall": "npm run tsc"
   },
   "keywords": [
     "logging",
