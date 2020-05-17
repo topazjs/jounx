@@ -3,10 +3,16 @@ import fs from "fs";
 
 import { promisify } from "util";
 import { LoggerFileError } from "./errors/LoggerFileError";
+import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
 import {
+    destinationTypes,
+    eventInfoType,
+    fileWriterType,
     formattingType,
+    formatTypes,
     LoggerOptions,
+    logTypes,
     multilineTypes,
 } from "./options";
 
@@ -17,75 +23,39 @@ import {
 
 const chalkConsole: chalk.Chalk = new chalk.Instance({ 'level': 3 });
 
-const NANOSEC_PER_SEC = BigInt(1e9);
-const NANOSEC_PER_MS = BigInt(1e6);
-
 const appendFileAsync = promisify(fs.appendFile);
-const readdirAsync = promisify(fs.readdir);
 
-export type fileWriterType = (
-    filePath: string,
-    fileText: string
-) => void;
+export class Logger <T extends LoggerOptions> extends LoggerOptions {
+    #timers: Map<any, bigint> = new Map();
 
-export enum destinationTypes {
-    CONSOLE = "console",
-    FILE = "file",
-}
+    fileWriter: fileWriterType;
 
-export enum logTypes {
-    INFO = "info",
-    ERROR = "error",
-    DEBUG = "debug",
-    TIMER = "timer",
-}
+    // #fileStream: fs.WriteStream | null = null;
 
-export enum formatTypes {
-    LABEL = "labelFormat",
-    PID = "pidFormat",
-    PORT = "portFormat",
-    DATE = "dateFormat",
-    TIME = "timeFormat",
-    TIMER = "timerFormat",
-    INFO = "infoMessage",
-    INFO2 = "infoSecondary",
-    ERROR = "errorMessage",
-    ERROR2 = "errorSecondary",
-    DEBUG = "debugMessage",
-    DEBUG2 = "debugSecondary",
-}
-
-export class Logger extends LoggerOptions {
-    timers: Map<any, bigint> = new Map();
-
-    fileWriter: fileWriterType | null = null;
-
-    fileStream: fs.WriteStream | null = null;
-
-    constructor ( options?: LoggerOptions | {} ) {
+    constructor ( options?: T | {} ) {
         super(options);
 
-        if ( this.enableLogFiles === true ) {
+        if ( this.enableLogFile === true ) {
             this.initFile();
         }
     }
 
     initFile () {
-        this.fileWriter = this[ this.fileWriteMode ];
+        if ( !this.logDirectory || !this.logFilename ) {
+            throw new LoggerOptionsError(`Log file is enabled but logDirectory and/or logFilename are invalid`);
+        }
 
         try {
             // eslint-disable-next-line no-sync
-            fs.mkdirSync(this.logFileDirectory, { "recursive": true });
+            fs.mkdirSync(this.logDirectory, { "recursive": true });
         }
         catch (e) {
-            throw new LoggerFileError(e);
+            throw new LoggerFileError(`Log directory inaccessible and cannot be created.  See error:`, e);
         }
 
-        return this;
-    }
+        this.fileWriter = this[ this.fileWriteMode ];
 
-    getTypeFormatting ( type: formatTypes ): formattingType {
-        return this[ type ] || [];
+        return this;
     }
 
     getFormatted ( destination: destinationTypes, formatType: formatTypes, value = `` ): string {
@@ -94,7 +64,7 @@ export class Logger extends LoggerOptions {
         }
 
         const stringValue = getPrettyString(value);
-        const formats = this.getTypeFormatting(formatType);
+        const formats: formattingType = this[ formatType ];
 
         const formatter = formats.reduce(( func, op ) => {
             if ( op ) {
@@ -187,171 +157,208 @@ export class Logger extends LoggerOptions {
      * @param   {?string[]}  textArgs
      * @return {Logger}
      */
-    log ( type: logTypes, ...textArgs ) {
-        if ( this.enableConsole ) {
-            const logText = this.getText(destinationTypes.CONSOLE, type, ...textArgs);
-
-            if ( type === logTypes.TIMER ) {
+    static async log ( type: logTypes, logText ) {
+        switch ( type ) {
+            case logTypes.TIMER:
                 console.log(logText);
-            }
-            else if ( type === logTypes.DEBUG ) {
-                console.trace(logText);
-            }
-            else {
-                console[ type ](logText);
-            }
-        }
+                break;
 
-        return this;
+            case logTypes.DEBUG:
+                console.trace(logText);
+                break;
+
+            default:
+                console[ type ](logText);
+                break;
+        }
     }
 
+    /*
     writeFileStream ( filePath: string, fileText: string ) {
-        if ( !this.fileStream ) {
-            this.fileStream = fs.createWriteStream(`${filePath}`);
+        if ( !this.#fileStream ) {
+            this.#fileStream = fs.createWriteStream(`${filePath}`);
 
-            this.fileStream.on(`error`, error => {
+            this.#fileStream.on(`error`, error => {
                 this.error(`Log file write failed`, error);
             });
 
-            this.fileStream.on(`close`, () => {
-                this.fileStream = null;
+            this.#fileStream.on(`close`, () => {
+                this.#fileStream = null;
             });
         }
-        this.fileStream.write(`${fileText}\n`);
-
-        return this;
+        this.#fileStream.write(`${fileText}\n`);
     }
+    */
 
-    async writeFileAsync ( filePath: string, fileText: string ) {
-        await appendFileAsync(filePath, `${fileText}\n`);
+    writeFileAsync: fileWriterType = ( filePath, fileText ) =>
+        appendFileAsync(filePath, `${fileText}\n`, { "encoding": `utf8` });
 
-        return this;
-    }
+    async file ( type: logTypes, fileText ) {
+        const logDirectory = this.logDirectory;
+        const filename = this.logFilename;
+        const pathStart = `${logDirectory}/${filename}`;
+        const currentPath = `${pathStart}`;
 
-    async getNextFileIndex ( logFileDirectory: string, filename: string ) {
-        const dirItems = await readdirAsync(logFileDirectory);
-        const baseFilenameLength = filename.length;
-        const matchingItems = dirItems.filter(_filename => {
-            const extractedName = _filename.slice(0, baseFilenameLength);
+        const fileWriteId = process.hrtime.bigint();
+        const eventInfo: eventInfoType = {
+            currentPath,
+            type,
+            fileWriteId,
+        };
 
-            return extractedName === filename;
-        });
-
-        return matchingItems.length;
-    }
-
-    async file ( type: logTypes, ...textArgs ) {
-        const logFileDirectory = this.logFileDirectory;
-        const logFileExtension = this.logFileExtension;
-        const logFileSizeLimit = this.logFileSizeLimit;
-        const filename = this[ `${type}Filename` ];
-
-        if ( this.enableLogFiles && filename ) {
-            const pathStart = `${logFileDirectory}/${filename}`;
-            const currentPath = `${pathStart}.${logFileExtension}`;
-            const fileText = this.getText(destinationTypes.FILE, type, ...textArgs);
-
-            fs.stat(currentPath, async ( error, stat ) => {
-                if ( !error && stat && stat.size > logFileSizeLimit ) {
-                    const newIndex = await this.getNextFileIndex(logFileDirectory, filename);
-                    const newPath = `${currentPath}.${newIndex}`;
-                    fs.rename(currentPath, newPath, error => {
-                        if ( error ) {
-                            this.log(logTypes.ERROR, `Failed to rename large file so killing file writing for this file`, error);
-                            this[ `${type}Filename` ] = ``;
-                        }
-                    });
+        Promise
+            .resolve(eventInfo)
+            .then(( info: eventInfoType ) => {
+                if ( this.onFileWriteStart ) {
+                    this.onFileWriteStart(info);
                 }
-            });
 
-            return this.fileWriter(currentPath, fileText);
-        }
+                return info;
+            })
+            .catch(e => {
+                this.error(`Problem with onFileWriteStart handler provided`, e);
+
+                return eventInfo;
+            })
+            .then(( info: eventInfoType ) => this.fileWriter(currentPath, fileText).then(() => info))
+            .catch(e => {
+                this.error(`Problem with fileWriter (${this.fileWriteMode})`, e);
+
+                return eventInfo;
+            })
+            .then(( info: eventInfoType ) => {
+                if ( this.onFileWriteFinish ) {
+                    this.onFileWriteFinish(info);
+                }
+            })
+            .catch(e => {
+                this.error(`Problem with onFileWriteFinish handler provided`, e);
+            });
 
         return this;
     }
 
-    info ( msg: any, ...args: any[] ) {
-        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.INFO, msg);
-        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.INFO, msg);
-        const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.INFO2);
-        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.INFO2);
-        const otherLogTextArray = args.map(consoleMapper);
-        const otherFileTextArray = args.map(fileMapper);
+    generic (
+        info: {
+            type: logTypes;
+            messageFormat: formatTypes;
+            secondaryFormat: formatTypes;
+        },
+        messages: any[]
+    ) {
+        const {
+            type,
+            messageFormat,
+            secondaryFormat,
+        } = info;
 
-        this.log(logTypes.INFO, logText, ...otherLogTextArray);
+        const [
+            msg,
+            ...args
+        ] = messages;
 
-        return this.file(logTypes.INFO, fileText, ...otherFileTextArray);
+        const logActions: Promise<this | void>[] = [];
+
+        if ( this.enableConsole === true ) {
+            const logMessage = this.getFormatted(destinationTypes.CONSOLE, messageFormat, msg);
+            const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, secondaryFormat);
+            const otherLogTextArray = args.map(consoleMapper);
+            const logText = this.getText(destinationTypes.CONSOLE, type, logMessage, ...otherLogTextArray);
+
+            logActions.push(
+                Logger.log(type, logText)
+            );
+        }
+
+        if ( this.enableLogFile === true ) {
+            const logMessage = this.getFormatted(destinationTypes.FILE, messageFormat, msg);
+            const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, secondaryFormat);
+            const otherFileTextArray = args.map(fileMapper);
+            const fileText = this.getText(destinationTypes.FILE, type, logMessage, ...otherFileTextArray);
+
+            logActions.push(
+                this.file(type, fileText)
+            );
+        }
+
+        Promise
+            .all(logActions)
+            .catch(error => this.error(`Had trouble logging a message - `, error));
+
     }
 
-    error ( msg: any, ...args: any[] ) {
-        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.ERROR, msg);
+    info ( ...messages: any[] ) {
+        const info = {
+            "type": logTypes.INFO,
+            "messageFormat": formatTypes.INFO,
+            "secondaryFormat": formatTypes.INFO2,
+        };
 
-        if ( args.length > 0 ) {
-            const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.ERROR2);
-            const otherLogTextArray = args.map(consoleMapper);
-            this.log(logTypes.ERROR, logText, ...otherLogTextArray);
-        }
-        else {
-            this.log(logTypes.ERROR, logText);
-        }
-
-        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.ERROR2);
-        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.ERROR, msg);
-        const otherFileTextArray = args.map(fileMapper);
-
-        return this.file(logTypes.ERROR, fileText, ...otherFileTextArray);
+        this.generic(info, messages);
     }
 
-    debug ( msg: any, ...args: any[] ) {
-        if ( this.dev ) {
-            const consoleMapper = this.getFormatted.bind(this, destinationTypes.CONSOLE, formatTypes.DEBUG2);
-            const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.DEBUG, msg);
-            const otherLogTextArray = args.map(consoleMapper);
-            this.log(logTypes.DEBUG, logText, ...otherLogTextArray);
-        }
-        const fileMapper = this.getFormatted.bind(this, destinationTypes.FILE, formatTypes.DEBUG2);
-        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.DEBUG, msg);
-        const otherFileTextArray = args.map(fileMapper);
+    error ( ...messages: any[] ) {
+        const info = {
+            "type": logTypes.ERROR,
+            "messageFormat": formatTypes.ERROR,
+            "secondaryFormat": formatTypes.ERROR2,
+        };
 
-        return this.file(logTypes.DEBUG, fileText, ...otherFileTextArray);
+        this.generic(info, messages);
+    }
+
+    debug ( ...messages: any[] ) {
+        const info = {
+            "type": logTypes.DEBUG,
+            "messageFormat": formatTypes.DEBUG,
+            "secondaryFormat": formatTypes.DEBUG2,
+        };
+
+        this.generic(info, messages);
     }
 
     time ( id = `__SPONTANEOUS__` ) {
         const startTime = process.hrtime.bigint();
-        this.timers.set(id, startTime);
-
-        return this;
+        this.#timers.set(id, startTime);
     }
 
-    async removeTimer ( id: string ) {
-        this.timers.delete(id);
-
-        return this;
+    getTimer ( id: string ): bigint {
+        return this.#timers.get(id);
     }
 
-    getTimerMessage ( id: string, endTime: bigint, startTime: bigint ) {
+    removeTimer ( id: string ): boolean {
+        return this.#timers.delete(id);
+    }
+
+    static getTimerMessage ( id: string, endTime: bigint, startTime: bigint ) {
         const diff: bigint = endTime - startTime;
 
-        const ns = `${diff}ns`;
-        const ms = `${diff / NANOSEC_PER_MS}ms`;
-        const sec = `${diff / NANOSEC_PER_SEC}s`;
+        const ms = `${diff}`.replace(/^(\d*)(\d{6})$/g, "$1.$2ms");
+        const sec = `${diff}`.replace(/^(\d*)(\d{9})$/g, "$1.$2s");
 
-        return `${id}: ${ns} (${ms}, ${sec})`;
+        return `${id}: ${ms} / ${sec}`;
     }
 
     timeEnd ( id = `__SPONTANEOUS__`, endTime: bigint = process.hrtime.bigint() ) {
-        const startTime = this.timers.get(id);
-        if ( !id || !startTime ) {
-            throw new Error(`No timer exists for ID ${id}. Make sure you included a .time('${id}') before calling .timeEnd('${id}')`);
+        const startTime = this.#timers.get(id);
+        if ( !startTime ) {
+            if ( !id || id === `__SPONTANEOUS__` ) {
+                throw new Error(`You need to pass a valid ID to end a timer and retreive the results`);
+            }
+
+            return this.error(`No timer exists for ID ${id}. Make sure you included a .time('${id}') before calling .timeEnd('${id}')`, startTime);
         }
 
-        const timerResult = this.getTimerMessage(id, endTime, startTime);
-        const logText = this.getFormatted(destinationTypes.CONSOLE, formatTypes.TIMER, timerResult);
-        const fileText = this.getFormatted(destinationTypes.FILE, formatTypes.TIMER, timerResult);
+        const timerResult = Logger.getTimerMessage(id, endTime, startTime);
 
         this.removeTimer(id);
-        this.log(logTypes.TIMER, logText);
 
-        return this.file(logTypes.DEBUG, fileText);
+        const info = {
+            "type": logTypes.TIMER,
+            "messageFormat": formatTypes.TIMER,
+            "secondaryFormat": formatTypes.TIMER,
+        };
+
+        this.generic(info, [ timerResult ]);
     }
 }

@@ -41,7 +41,7 @@ module.exports = {
         ],
         "array-callback-return": "error",
         "array-element-newline": "error",
-        "arrow-body-style": "error",
+        "arrow-body-style": "warn",
         "arrow-parens": [
             "error",
             "as-needed"
@@ -107,7 +107,7 @@ module.exports = {
         "func-style": "off",
         "function-paren-newline": [
             "error",
-            "multiline"
+            "multiline-arguments"
         ],
         "generator-star-spacing": "error",
         "global-require": "error",
@@ -117,7 +117,7 @@ module.exports = {
         "id-blacklist": "error",
         "id-length": "off",
         "id-match": "error",
-        "implicit-arrow-linebreak": "error",
+        "implicit-arrow-linebreak": "off",
         "indent": [
             "error",
             4,
@@ -132,7 +132,7 @@ module.exports = {
                 "ignoreComments": false
             }
         ],
-        "indent-legacy": "error",
+        "indent-legacy": "off",
         "init-declarations": "error",
         "jsx-quotes": "error",
         "key-spacing": "error",
@@ -243,6 +243,7 @@ module.exports = {
                 "enforceForNewInMemberExpressions": false
             }
         ],
+        "no-extra-semi": "off",
         "no-floating-decimal": "error",
         "no-implicit-globals": "error",
         "no-implied-eval": "error",
@@ -304,7 +305,7 @@ module.exports = {
         "no-unneeded-ternary": "error",
         "no-unused-expressions": "error",
         "no-unused-vars": [
-            "error",
+            "warn",
             { "varsIgnorePattern": "should|expect" }
         ],
         "no-use-before-define": "error",
@@ -336,7 +337,7 @@ module.exports = {
         "prefer-const": "error",
         "prefer-destructuring": "off",
         "prefer-exponentiation-operator": "error",
-        "prefer-named-capture-group": "error",
+        "prefer-named-capture-group": "warn",
         "prefer-numeric-literals": "error",
         "prefer-object-spread": "error",
         "prefer-promise-reject-errors": "error",

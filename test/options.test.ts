@@ -1,14 +1,11 @@
 import chai from "chai";
 
-import {
-    destinationTypes,
-    Logger,
-    logTypes,
-} from "../index";
+import { Logger } from "../index";
 
 import {
-    fileWriteModeTypes,
+    destinationTypes,
     LoggerOptions,
+    logTypes,
 } from "../options";
 
 const assert = chai.assert;
@@ -18,35 +15,47 @@ const assert = chai.assert;
  */
 
 describe(`Initialization and options`, () => {
+    class TestClass<T extends LoggerOptions> extends LoggerOptions {
+        constructor ( options?: T | {} ) {
+            super(options);
+        }
+    }
+
     describe(`- No options passed`, () => {
         it(`new Logger() is an instance of Logger with default options`, () => {
             const logger = new Logger();
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(null) is an instance of Logger with default options`, () => {
             const testOptions = null;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger({}) is an instance of Logger with default options`, () => {
             const testOptions = {};
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger([]) is an instance of Logger with default options`, () => {
             const testOptions = [];
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(0) is an instance of Logger with default options`, () => {
             const testOptions = 0;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger('') is an instance of Logger with default options`, () => {
             const testOptions = ``;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
     });
 
@@ -57,7 +66,8 @@ describe(`Initialization and options`, () => {
                 "def": 123,
             };
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger([{}]) is an instance of Logger with default options`, () => {
             const testOptions = [ {} ];
@@ -75,45 +85,52 @@ describe(`Initialization and options`, () => {
         it(`new Logger(123) is an instance of Logger with default options`, () => {
             const testOptions = 123;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger('abc') is an instance of Logger with default options`, () => {
             const testOptions = `abc`;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(NaN) is an instance of Logger with default options`, () => {
             const testOptions = NaN;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(function () {}) is an instance of Logger with default options`, () => {
             const testOptions = function () {};
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(() => {}) is an instance of Logger with default options`, () => {
             const testOptions = () => {};
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
         it(`new Logger(Infinity) is an instance of Logger with default options`, () => {
             const testOptions = Infinity;
             const logger = new Logger(testOptions);
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
     });
 
     describe(`#options()`, () => {
         const basicOptions = {
-            "enableLogFiles": false,
+            "enableLogFile": false,
             "enableConsole": false,
             // "enableExternal": false,
         };
 
         it(`should use defaults when no options passed`, () => {
             const logger = new Logger();
-            assert.deepInclude(logger, new LoggerOptions());
+            const testClass = new TestClass();
+            assert.deepInclude(logger, testClass);
         });
 
         describe(`options.info`, function () {
@@ -167,11 +184,9 @@ describe(`Initialization and options`, () => {
         describe(`multiple io.file option changes`, () => {
             it(`should use the changes and merge with existing defaults`, () => {
                 const logger1 = new Logger({
-                    "enableLogFiles": true,
-                    "logFileDirectory": `./logs`,
-                    "infoFilename": `info-guy`,
-                    "errorFilename": `error-dude`,
-                    "debugFilename": `debug-san`,
+                    "enableLogFile": true,
+                    "logDirectory": `./logs`,
+                    "logFilename": `info-guy.log`,
                 });
                 const logger2 = new Logger();
 
@@ -179,24 +194,22 @@ describe(`Initialization and options`, () => {
                  * The file options above changed while the defaults remained the same
                  */
 
-                const logFileDirectory1 = logger1.logFileDirectory;
-                const infoFilename1 = logger1.infoFilename;
-                const errorFilename1 = logger1.errorFilename;
-                const debugFilename1 = logger1.debugFilename;
+                const logDirectory1 = logger1.logDirectory;
+                const logFilename1 = logger1.logFilename;
 
-                const logFileDirectory2 = logger2.logFileDirectory;
-                const infoFilename2 = logger2.infoFilename;
-                const errorFilename2 = logger2.errorFilename;
-                const debugFilename2 = logger2.debugFilename;
+                const logDirectory2 = logger2.logDirectory;
+                const logFilename2 = logger2.logFilename;
 
-                assert.notEqual(logFileDirectory1, logFileDirectory2, `logFileDirectory given did not get applied as a new value and still reflects the default`);
-                assert.notEqual(infoFilename1, infoFilename2, `infoFilename given did not get applied as a new value and still reflects the default`);
-                assert.notEqual(errorFilename1, errorFilename2, `errorFilename given did not get applied as a new value and still reflects the default`);
-                assert.notEqual(debugFilename1, debugFilename2, `debugFilename given did not get applied as a new value and still reflects the default`);
+                assert.notEqual(logDirectory1, logDirectory2, `logDirectory given did not get applied as a new value and still reflects the default`);
+                assert.notEqual(logFilename1, logFilename2, `logFilename given did not get applied as a new value and still reflects the default`);
 
             });
         });
 
+        /**
+         * Add this back when stream is re-enabled again
+         */
+        /*
         describe(`fileWriteMode passed`, () => {
             it(`should not allow any unsupported value to be passed`, () => {
                 const logger1 = new Logger({ "fileWriteMode": `abcdefgHIJKLMNOP123345` });
@@ -211,10 +224,11 @@ describe(`Initialization and options`, () => {
             });
 
             it(`should assign the writeFileAsync method to fileWriter when set to "writeFileAsync"`, () => {
-                const logger = new Logger({ "fileWriteMode": fileWriteModeTypes.ASYNC });
+                const logger = new Logger({ "enableLogFile": true, "fileWriteMode": fileWriteModeTypes.ASYNC });
                 logger.initFile();
                 assert.equal(logger.fileWriter, logger.writeFileAsync, `fileWriter was not assigned to writeFileAsync as expected`);
             });
         });
+        */
     });
 });

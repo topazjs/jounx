@@ -1,16 +1,14 @@
 import chai from "chai";
+
+import { Logger } from "../index";
+
 import {
     destinationTypes,
     formatTypes,
-    Logger,
     logTypes,
-} from "../index";
+} from "../options";
 
 const assert = chai.assert;
-
-// import {
-//     LoggerOptions,
-// } from "../options";
 
 const originalInfo = console.info;
 const originalLog = console.log;
@@ -26,12 +24,24 @@ afterEach(function () {
 
 describe(`Console`, function () {
     const logger = new Logger({
-        "enableLogFiles": false,
+        "dev": true,
+        "enableLogFile": false,
         "enableConsole": true,
         "prefixWithDateTime": false,
         "pidPrefix": ``,
         "portPrefix": ``,
     });
+
+    const message = `Hello, world!`;
+    const message2 = `Well let's make this interesting shall we`;
+    const message2a = `before the msg ... ${message2} + some extra`;
+    const message3 = [
+        {label: `ad_groups`, value: `ad_groups`, image: `/${~~(Math.random() * 10)}.jpg`},
+        {label: `ad_users`, value: `ad_users`, image: `/${~~(Math.random() * 10)}.jpg`},
+        {label: `ae_scripts`, value: `ae_scripts`, image: `/${~~(Math.random() * 10)}.jpg`},
+        {label: `alerts`, value: `alerts`, image: `/${~~(Math.random() * 10)}.jpg`},
+        {label: `api_models`, value: `api_models`, image: `/${~~(Math.random() * 10)}.jpg`},
+    ];
 
     describe(`#time()`, function () {
         const id = `TIMER_TEST_${Date.now()}`;
@@ -45,61 +55,42 @@ describe(`Console`, function () {
         beforeEach(function () {
             console.log = mockLog;
             logOutput = [];
-        });
-
-        afterEach(function () {
-            logger.timers.clear();
+            logger.removeTimer(id)
         });
 
         it(`should start a new timer`, function () {
-            assert.isEmpty(logger.timers);
-
+            assert.notExists(logger.getTimer(id));
             logger.time(id);
-
-            const timerStartValue = logger
-                .timers
-                .get(id);
-
+            const timerStartValue = logger.getTimer(id);
             assert.typeOf(timerStartValue, `bigint`);
+            assert.isTrue(timerStartValue > BigInt(0));
         });
 
         it(`should start a timer, end it, and remove the time from the timers map`, function () {
-            assert.isEmpty(logger.timers);
-
+            assert.notExists(logger.getTimer(id));
             logger.time(id);
 
-            const timerStartValue = logger
-                .timers
-                .get(id);
-
+            const timerStartValue = logger.getTimer(id);
             assert.typeOf(timerStartValue, `bigint`);
 
             const timerEndValue = process.hrtime.bigint();
-
             assert.typeOf(timerEndValue, `bigint`);
             assert.isTrue(timerEndValue > timerStartValue, `Timer start time is somehow after the end time`);
 
-            logger.timeEnd(id, timerEndValue);
-
-            const timerRemoved = !logger
-                .timers
-                .has(id);
-
-            assert.isTrue(timerRemoved);
+            assert.doesNotThrow(() => logger.timeEnd(id, timerEndValue));
+            assert.notExists(logger.getTimer(id));
         });
 
         it(`should throw if .timeEnd() does not find a matching timer`, function () {
             assert.throws(() => logger.timeEnd());
-            assert.throws(() => logger.timeEnd(`abc123_NOTREAL`));
-            assert.throws(() => logger.timeEnd(`abc123_NOTREAL_456`, process.hrtime.bigint()));
         });
 
         it(`should write a timer result to the console log output`, function () {
             const expectedOutput = [];
             const TIMER_ID = `_INFO_TIMER_`;
             logger.time(TIMER_ID);
+            const timerStart = logger.getTimer(TIMER_ID);
 
-            const timerStart = logger.timers.get(TIMER_ID);
             assert.typeOf(timerStart, `bigint`);
 
             const timerEnd = process.hrtime.bigint();
@@ -108,7 +99,7 @@ describe(`Console`, function () {
 
             logger.timeEnd(TIMER_ID, timerEnd);
 
-            const message = logger.getTimerMessage(TIMER_ID, timerEnd, timerStart);
+            const message = Logger.getTimerMessage(TIMER_ID, timerEnd, timerStart);
             const formattedMessage = logger.getFormatted(destinationTypes.CONSOLE,formatTypes.TIMER, message);
             const full = logger.getText(destinationTypes.CONSOLE, logTypes.TIMER, formattedMessage);
             expectedOutput.push(full);
@@ -129,14 +120,25 @@ describe(`Console`, function () {
             infoOutput = [];
         });
 
-        const message = `Hello, world!`;
-
-        it(`should write stuff to the console info output`, function () {
+        it(`should write a line to the console info output`, function () {
             const expectedOutput = [];
             logger.info(message);
 
             const formattedMessage = logger.getFormatted(destinationTypes.CONSOLE, formatTypes.INFO, message);
             const full = logger.getText(destinationTypes.CONSOLE, logTypes.INFO, formattedMessage);
+            expectedOutput.push(full);
+
+            assert.includeMembers(infoOutput, expectedOutput);
+        });
+
+        it(`should write 3 lines (first primary, next two secondary formats) to the console info output`, function () {
+            const expectedOutput = [];
+            logger.info(message, message2, message2a);
+
+            const formattedMessage = logger.getFormatted(destinationTypes.CONSOLE, formatTypes.INFO, message);
+            const consoleMapper = logger.getFormatted.bind(logger, destinationTypes.CONSOLE, formatTypes.INFO2);
+            const otherLogText = [ message2, message2a ].map(consoleMapper);
+            const full = logger.getText(destinationTypes.CONSOLE, logTypes.INFO, formattedMessage, ...otherLogText);
             expectedOutput.push(full);
 
             assert.includeMembers(infoOutput, expectedOutput);
@@ -155,20 +157,10 @@ describe(`Console`, function () {
             errorOutput = [];
         });
 
-        const message = `Hello, world!`;
-        const message2 = `Well let's make this interesting shall we`;
-        const message3 = [
-            {label: `ad_groups`, value: `ad_groups`, image: `/${~~(Math.random() * 10)}.jpg`},
-            {label: `ad_users`, value: `ad_users`, image: `/${~~(Math.random() * 10)}.jpg`},
-            {label: `ae_scripts`, value: `ae_scripts`, image: `/${~~(Math.random() * 10)}.jpg`},
-            {label: `alerts`, value: `alerts`, image: `/${~~(Math.random() * 10)}.jpg`},
-            {label: `api_models`, value: `api_models`, image: `/${~~(Math.random() * 10)}.jpg`},
-        ];
-
         it(`should write a single message to the console error output`, function () {
             const expectedOutput = [];
             const logger = new Logger({
-                "enableLogFiles": false,
+                "enableLogFile": false,
                 "enableConsole": true,
                 "prefixWithDateTime": false,
                 "pidPrefix": ``,
@@ -225,7 +217,7 @@ describe(`Console`, function () {
 
         it(`should do nothing if options.dev === false`, function () {
             const logger = new Logger({
-                "enableLogFiles": false,
+                "enableLogFile": false,
                 "enableConsole": true,
                 "prefixWithDateTime": false,
                 "pidPrefix": ``,
@@ -239,7 +231,7 @@ describe(`Console`, function () {
         it(`should write stuff to the console trace output if options.dev === true`, function () {
             const expectedOutput = [];
             const logger = new Logger({
-                "enableLogFiles": false,
+                "enableLogFile": false,
                 "enableConsole": true,
                 "prefixWithDateTime": false,
                 "pidPrefix": ``,

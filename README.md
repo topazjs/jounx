@@ -25,7 +25,7 @@ const { Logger } = require('jounx');
 const logger = new Jounx();
 
 // ...or include an options object (see below)
-const logger = new Jounx({ "enableLogFiles": true, "prefixWithDateTime": false });
+const logger = new Jounx({ "enableLogFile": true, "prefixWithDateTime": false });
 
 /**
  * Log a simple message
@@ -62,7 +62,7 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
     /**
      * Enables log file to be written while app is running
      */
-    "enableLogFiles": false,
+    "enableLogFile": false,
 
     /**
      * Determines which method to use for writing the log to the
@@ -88,7 +88,7 @@ logger.debug(`Let's investigate`, new Error(`Might as well quit`));
     "debugFilename": "debug",
 
     /**
-     * Directory to store the log files if `enableLogFiles` is `true`
+     * Directory to store the log files if `enableLogFile` is `true`
      *
      * - absolute path
      *  "/var/log/www"

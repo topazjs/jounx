@@ -4,5 +4,5 @@ node_modules/
 tsconfig.json
 package.json
 package-lock.json
-*.test.ts
+**/*.test.ts
 logs/

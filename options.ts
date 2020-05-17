@@ -1,6 +1,8 @@
 import path from "path";
 import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
+export type formattingType = string[];
+
 export enum fileWriteModeTypes {
     ASYNC = "writeFileAsync",
     STREAM = "writeFileStream",
@@ -12,29 +14,69 @@ export enum multilineTypes {
     NEVER = "never",
 }
 
-export type formattingType = string[];
+export type fileWriterType = (
+    filePath: string,
+    fileText: string
+) => Promise<string|void>;
 
-export class LoggerOptions {
+export enum destinationTypes {
+    CONSOLE = "console",
+    FILE = "file",
+}
+
+export enum logTypes {
+    INFO = "info",
+    ERROR = "error",
+    DEBUG = "debug",
+    TIMER = "timer",
+}
+
+export enum formatTypes {
+    LABEL = "labelFormat",
+    PID = "pidFormat",
+    PORT = "portFormat",
+    DATE = "dateFormat",
+    TIME = "timeFormat",
+    TIMER = "timerFormat",
+    INFO = "infoMessageFormat",
+    INFO2 = "infoSecondaryFormat",
+    ERROR = "errorMessageFormat",
+    ERROR2 = "errorSecondaryFormat",
+    DEBUG = "debugMessageFormat",
+    DEBUG2 = "debugSecondaryFormat",
+}
+
+export type eventInfoType = {
+    currentPath: string;
+    type: logTypes;
+    fileWriteId: bigint;
+};
+
+export abstract class LoggerOptions {
     dev = process.env.NODE_ENV === `development`;
 
     /**
      * File option defaults
      */
-    enableLogFiles = false;
+    enableLogFile = false;
 
     fileWriteMode = fileWriteModeTypes.ASYNC;
 
-    logFileDirectory = `./logs`;
+    logDirectory = `./logs`;
 
-    infoFilename = `info`;
+    logFilename = `info.log`;
 
-    errorFilename = `error`;
+    onFileWriteStart: ( info: eventInfoType ) => void;
 
-    debugFilename = `debug`;
+    onFileWriteFinish: ( info: eventInfoType ) => void;
 
-    logFileExtension = `log`;
+    fileWriter: ( filePath: string, fileText: string ) => Promise<string|void>;
 
-    logFileSizeLimit = 5000000;
+    // onFileWriteStart ( info: eventInfoType ): void {};
+
+    // onFileWriteFinish ( info: eventInfoType ): void {};
+
+    // async fileWriter ( filePath: string, fileText: string ): Promise<string|void> {};
 
     /**
      * Console option defaults
@@ -109,7 +151,7 @@ export class LoggerOptions {
     }
 
     /**
-     * Directory to store the log files if `enableLogFiles` is `true`
+     * Directory to store the log files if `enableLogFile` is `true`
      *
      * - absolute path
      *  "/var/log/www"
@@ -118,12 +160,12 @@ export class LoggerOptions {
      *  "../../home/my-logs"
      *
      * - empty path will use current working directory
-     *  path.join(__dirname, ".")
-     *  path.join(__dirname, "./logs")
+     *  path.resolve("./", ".")
+     *  path.resolve("./", "./logs")
      *
      *  default: "./logs"
      */
-    static getLogFileDirectory ( value: string ) {
+    static getlogDirectory ( value: string ) {
         const regDots = /^\.\.?\//;
 
         /**
@@ -162,51 +204,29 @@ export class LoggerOptions {
          * Set provided file options
          */
 
+        if ( `enableLogFile` in options ) {
+            this.enableLogFile = !!options.enableLogFile;
+        }
+
         if ( `fileWriteMode` in options ) {
             this.fileWriteMode = LoggerOptions.getFileWriteMode(options.fileWriteMode);
         }
 
-        if ( `logFileDirectory` in options ) {
-            this.logFileDirectory = LoggerOptions.getLogFileDirectory(options.logFileDirectory);
+        if ( `logDirectory` in options ) {
+            this.logDirectory = LoggerOptions.getlogDirectory(options.logDirectory);
         }
 
-        if ( `enableLogFiles` in options ) {
-            this.enableLogFiles = !!options.enableLogFiles;
+        if ( `logFilename` in options ) {
+            this.logFilename = options.logFilename;
         }
 
-        /**
-         * @default "info"
-         */
-        if ( `infoFilename` in options ) {
-            this.infoFilename = options.infoFilename;
-        }
-
-        /**
-         * @default "error"
-         */
-        if ( `errorFilename` in options ) {
-            this.errorFilename = options.errorFilename;
-        }
-
-        /**
-         * @default "debug"
-         */
-        if ( `debugFilename` in options ) {
-            this.debugFilename = options.debugFilename;
-        }
-
-        /**
-         * Extension to use at the end of the filename
-         */
-        if ( `logFileExtension` in options ) {
-            this.logFileExtension = options.logFileExtension;
-        }
-
-        /**
-         * Number of bytes to allow log to reach before renaming and starting a new one
-         */
-        if ( `logFileSizeLimit` in options ) {
-            this.logFileSizeLimit = ~~options.logFileSizeLimit;
+        if ( this.dev === true ) {
+            if ( `onFileWriteStart` in options && typeof options.onFileWriteStart === `function` ) {
+                this.onFileWriteStart = options.onFileWriteStart.bind(this);
+            }
+            if ( `onFileWriteFinish` in options && typeof options.onFileWriteFinish === `function` ) {
+                this.onFileWriteFinish = options.onFileWriteFinish.bind(this);
+            }
         }
 
         /**
