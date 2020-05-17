@@ -114,23 +114,21 @@ describe(`#info()`, () => {
         const logger = makeLogger({
             "dev": true,
             "onFileWriteStart": function ( info: eventInfoType ) {
-                console.log(`starting file write`, info.fileWriteId);
+                // console.log(`starting file write`, info.fileWriteId);
             },
             "onFileWriteFinish": function ( info: eventInfoType ) {
-                console.log(`stopping file write`, info.fileWriteId);
                 const fileText = fs.readFileSync(info.currentPath, { "encoding": `utf8` });
-
                 const index = fileText.indexOf(logMessage);
                 assert.isAbove(index, -1);
-                assert.equal(fileText.slice(index, logMessage.length), `${logMessage}\n`);
+                assert.equal(fileText.slice(index, index + logMessage.length), `${logMessage}`);
 
                 const index2 = fileText.indexOf(logMessage2);
                 assert.isAbove(index2, -1);
-                assert.equal(fileText.slice(index2, logMessage2.length), `${logMessage2}\n`);
+                assert.equal(fileText.slice(index2, index2 + logMessage2.length), `${logMessage2}`);
 
                 const index3 = fileText.indexOf(logMessage3);
                 assert.isAbove(index3, -1);
-                assert.equal(fileText.slice(index3, logMessage3.length), `${logMessage3}\n`);
+                assert.equal(fileText.slice(index3, index3 + logMessage3.length), `${logMessage3}`);
                 removeDirectory(this.logDirectory);
                 done();
             },

@@ -134,10 +134,13 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
         const multiline = this.consoleMultiLine;
         const maxWidth = this.consoleMaxWidth;
         const regMaxWidth = new RegExp(`(.{${maxWidth}})`, `g`);
+        const messageArray = destination === destinationTypes.CONSOLE
+            ? messages.map(row => row.replace(regMaxWidth, `$1\n`))
+            : messages;
 
         const line = [
             prefix,
-            messages.map(row => row.replace(regMaxWidth, `$1\n`)).join(`\n`),
+            messageArray.join(`\n`),
         ];
 
         const needsMultiLine = multiline === multilineTypes.ALWAYS || (
