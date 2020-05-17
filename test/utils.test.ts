@@ -5,7 +5,7 @@ const assert = chai.assert;
 const {
     getString,
     getPrettyString,
-} = require('../utils');
+} = require('../src/utils');
 
 describe(`Utils`, function () {
     const objectToStringify = {

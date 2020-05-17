@@ -66,11 +66,17 @@ export abstract class LoggerOptions {
 
     logFilename = `info.log`;
 
-    onFileWriteStart: ( info: eventInfoType ) => void;
+    onFileWriteStart ( info: eventInfoType ): void | boolean {
+        return true;
+    };
 
-    onFileWriteFinish: ( info: eventInfoType ) => void;
+    onFileWriteFinish ( info: eventInfoType ): void | boolean {
+        return true;
+    };
 
-    fileWriter: ( filePath: string, fileText: string ) => Promise<string|void>;
+    // onFileWriteFinish: ( info: eventInfoType ) => void;
+
+    // fileWriter: ( filePath: string, fileText: string ) => Promise<string|void>;
 
     // onFileWriteStart ( info: eventInfoType ): void {};
 

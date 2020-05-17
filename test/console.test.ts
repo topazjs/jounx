@@ -1,12 +1,12 @@
 import chai from "chai";
 
-import { Logger } from "../index";
+import { Logger } from "../src";
 
 import {
     destinationTypes,
     formatTypes,
     logTypes,
-} from "../options";
+} from "../src/options";
 
 const assert = chai.assert;
 

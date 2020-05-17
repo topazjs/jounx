@@ -1,12 +1,12 @@
 {
   "name": "jounx",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A more useful console and/or file logging solution with colors",
-  "main": "build/index.js",
+  "main": "build/src/index.js",
   "types": "build/**/*.d.ts",
   "private": false,
   "scripts": {
-    "tsc": "npm run clean && tsc",
+    "tsc": "tsc",
     "test": "mocha -r ts-node/register --full-trace --inline-diffs --recursive **/*.test.ts",
     "lint:test": "eslint -c .eslintrc.js '**/*.{js,ts,json}'",
     "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
@@ -28,10 +28,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
     "chalk": "^4.0.0",
-    "eslint": "^7.0.0",
     "typescript": "^3.9.2"
   },
   "devDependencies": {

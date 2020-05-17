@@ -2,9 +2,9 @@ import chai from "chai";
 import fs from "fs";
 import { promisify } from "util";
 
-import { Logger } from "../index";
+import { Logger } from "../src";
 
-import { eventInfoType } from "../options";
+import { eventInfoType } from "../src/options";
 
 const assert = chai.assert;
 
