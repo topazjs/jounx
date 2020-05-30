@@ -12,7 +12,6 @@
     "lint:fix": "eslint -c .eslintrc.js --fix '**/*.{js,ts,json}'",
     "clean": "rm -rf build/ logs/ *debug*.log",
     "final-checks": "npm run clean && npm run lint:test && npm run tsc && npm test",
-    "postinstall": "npm run tsc",
     "prepublishOnly": "npm version patch",
     "preversion": "npm run final-checks"
   },

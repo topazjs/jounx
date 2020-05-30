@@ -6,12 +6,12 @@ import { LoggerFileError } from "./errors/LoggerFileError";
 import { LoggerOptionsError } from "./errors/LoggerOptionsError";
 
 import {
-    LoggerOptions,
     destinationTypes,
     eventInfoType,
     fileWriterType,
-    formatTypes,
     formattingType,
+    formatTypes,
+    LoggerOptions,
     logTypes,
     multilineTypes,
 } from "./options";
@@ -182,7 +182,7 @@ export class Logger <T extends LoggerOptions> extends LoggerOptions {
             this.#fileStream = fs.createWriteStream(`${filePath}`);
 
             this.#fileStream.on(`error`, error => {
-                this.error(`Log file write failed`, error);
+                console.error(`Log file write failed`, error);
             });
 
             this.#fileStream.on(`close`, () => {
